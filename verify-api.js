@@ -102,11 +102,38 @@ async function main() {
   }
 
   console.log('\n--- 4. 操作日志完整性 ---');
-  const ops = detail.operations || [];
+  const ops = detail.operationLogs || [];
   console.log(`✅ 操作日志数: ${ops.length}`);
   ops.slice(0, 3).forEach(op => {
-    console.log(`   - ${op.operatedAt.slice(0, 19)} ${op.operatorName} ${op.actionLabel}: ${op.detail}`);
+    console.log(`   - ${op.operatedAt.slice(0, 19)} ${op.operatorName} ${op.action}: ${op.remark}`);
   });
+
+  console.log('\n--- 4.5. 新字段验证 ---');
+  if (detail.version !== undefined && detail.version > 0) {
+    console.log(`✅ 版本号: v${detail.version}`);
+  } else {
+    console.log('❌ 缺少 version 字段');
+  }
+  if (detail.supplementCycle !== undefined) {
+    console.log(`✅ 补件轮次: ${detail.supplementCycle}`);
+  } else {
+    console.log('❌ 缺少 supplementCycle 字段');
+  }
+  if (detail.remindCount !== undefined) {
+    console.log(`✅ 催办总次数: ${detail.remindCount}`);
+  } else {
+    console.log('❌ 缺少 remindCount 字段');
+  }
+  if (detail.lastSupplementAt !== undefined) {
+    console.log(`✅ 最近补件时间: ${detail.lastSupplementAt || '无'}`);
+  } else {
+    console.log('❌ 缺少 lastSupplementAt 字段');
+  }
+  if (detail.pendingConfirm !== undefined) {
+    console.log(`✅ 是否待确认: ${detail.pendingConfirm}`);
+  } else {
+    console.log('❌ 缺少 pendingConfirm 字段');
+  }
 
   console.log('\n--- 5. 角色权限验证 ---');
   const testCases = [

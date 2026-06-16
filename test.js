@@ -124,7 +124,12 @@ async function runAll() {
 
   const afterSupplement = await test('查看补件提交后状态', () =>
     request('GET', '/api/reimbursements/BX1001', 'u2'));
-  console.log(`  状态: ${afterSupplement.statusLabel}（应为 待复核）`);
+  console.log(`  状态: ${afterSupplement.statusLabel}（应为 待确认）`);
+  console.log(`  待确认: ${afterSupplement.pendingConfirm}（应为 true）`);
+  console.log(`  最近补件时间: ${afterSupplement.lastSupplementAt}`);
+
+  await test('财务确认补件完成 → 状态转待复核', () =>
+    request('POST', '/api/reimbursements/BX1001/confirm-supplement', 'u3', {}));
 
   await test('审核员不能直接复核待复核单据（权限验证）', async () => {
     try {

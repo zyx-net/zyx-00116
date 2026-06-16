@@ -21,13 +21,17 @@ function decorateReimbursement(r) {
   const reminders = data.reminders.filter(rm => rm.reimbursementId === r.id);
   const totalRemindCount = reminders.reduce((sum, rm) => sum + (rm.remindCount || 0), 0);
   const overdue = r.status === STATUS.PENDING_SUPPLEMENT && r.deadline && isOverdue(r.deadline);
+  const pendingConfirm = r.status === STATUS.PENDING_SUPPLEMENT
+    && (r.missingAttachments || []).length === 0;
   return {
     ...r,
-    statusLabel: STATUS_LABEL[r.status],
+    statusLabel: pendingConfirm ? '待确认' : STATUS_LABEL[r.status],
     applicantName: applicant ? applicant.name : '未知',
     reminderCount: reminders.length,
     remindCount: totalRemindCount,
     lastReminderAt: reminders.length > 0 ? reminders[reminders.length - 1].remindedAt : null,
+    lastSupplementAt: r.lastSupplementAt || null,
+    pendingConfirm,
     overdue
   };
 }
@@ -85,6 +89,7 @@ function createReimbursement(payload, operatorId) {
     rejectReason: null,
     deadline: null,
     supplementCycle: 0,
+    lastSupplementAt: null,
     createdAt: now,
     updatedAt: now,
     version: 1
@@ -294,9 +299,17 @@ function confirmSupplementComplete(id, operatorId, expectedVersion) {
   assertStatus(r, [STATUS.PENDING_SUPPLEMENT], '仅待补件状态可确认补件完成');
 
   const required = r.missingAttachments || [];
-  const { unmatched } = matchAttachmentToMissing(r.attachments, required);
+  const { unmatched, matched } = matchAttachmentToMissing(r.attachments, required);
   if (unmatched.length > 0) {
-    throw new Error(`仍有缺失附件未补充：${unmatched.join('、')}，无法确认补件完成`);
+    const matchedNames = matched.map(m => `${m.missing}（${m.attachment.name}）`).join('、');
+    const currentAttNames = r.attachments.map(a => `${a.name}(${a.category})`).join('、');
+    throw new Error(
+      `材料未补齐，无法确认补件完成。` +
+      `\n  缺失附件（${unmatched.length}项）：${unmatched.join('、')}` +
+      `\n  已匹配附件（${matched.length}项）：${matchedNames || '无'}` +
+      `\n  当前附件清单：${currentAttNames || '无'}` +
+      `\n  请通知申请人补齐缺失材料后再确认。`
+    );
   }
 
   r.missingAttachments = [];
@@ -326,7 +339,9 @@ function listSupplementTasks(filter = {}) {
     const overdue = r.deadline && isOverdue(r.deadline);
     const remainingDays = r.deadline ? Math.ceil((new Date(r.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : null;
 
-    const pendingConfirm = (r.missingAttachments || []).length === 0;
+    const missingList = r.missingAttachments || [];
+    const pendingConfirm = missingList.length === 0;
+    const { matched, unmatched } = matchAttachmentToMissing(r.attachments, missingList);
 
     return {
       id: r.id,
@@ -337,13 +352,16 @@ function listSupplementTasks(filter = {}) {
       applicantName: applicant ? applicant.name : '未知',
       status: r.status,
       statusLabel: pendingConfirm ? '待确认' : STATUS_LABEL[r.status],
-      missingAttachments: r.missingAttachments || [],
+      missingAttachments: missingList,
+      missingCount: missingList.length,
+      matchedAttachments: matched.map(m => ({ missing: m.missing, attachmentName: m.attachment.name })),
       pendingConfirm,
       deadline: r.deadline,
       remainingDays,
       overdue,
       supplementCycle: r.supplementCycle,
       lastReminderAt: currentReminder ? currentReminder.lastRemindedAt : null,
+      lastSupplementAt: r.lastSupplementAt || null,
       remindCount: totalRemindCount,
       version: r.version || 1,
       createdAt: r.createdAt,
@@ -386,6 +404,7 @@ function submitSupplement(id, operatorId, newAttachments, expectedVersion) {
   if (unmatched.length === 0) {
     r.missingAttachments = [];
   }
+  r.lastSupplementAt = nowISO();
   bumpVersion(r);
   logOperation(data, id, operatorId, 'submit_supplement',
     `提交补件材料：${newAtts.map(a => a.name).join('、')}，匹配到：${matchedNames || '无'}${unmatched.length === 0 ? '（已全部补齐，待财务确认）' : `，仍缺：${unmatched.join('、')}`}`);
@@ -449,11 +468,55 @@ function exportArchive(id) {
   if (r.status !== STATUS.ARCHIVED) {
     throw new Error('仅已归档单据可导出');
   }
-  const reminders = data.reminders.filter(rm => rm.reimbursementId === id);
+  const reminders = data.reminders.filter(rm => rm.reimbursementId === id)
+    .sort((a, b) => new Date(a.remindedAt) - new Date(b.remindedAt));
   const logs = data.operationLogs.filter(l => l.reimbursementId === id)
     .sort((a, b) => new Date(a.operatedAt) - new Date(b.operatedAt));
   const applicant = USERS.find(u => u.id === r.applicantId);
   const decorate = decorateReimbursement(r);
+
+  const supplementLogs = logs.filter(l =>
+    l.action === 'request_supplement' ||
+    l.action === 'submit_supplement' ||
+    l.action === 'confirm_supplement_complete' ||
+    l.action === 'remind_again'
+  );
+  const supplementCycles = [];
+  const cycleMap = {};
+  for (const rm of reminders) {
+    if (!cycleMap[rm.cycle]) {
+      cycleMap[rm.cycle] = {
+        cycle: rm.cycle,
+        requestedAt: rm.remindedAt,
+        requestedBy: rm.operatorName,
+        deadline: rm.deadline,
+        message: rm.message,
+        remindCount: rm.remindCount,
+        lastRemindedAt: rm.lastRemindedAt,
+        lastRemindedBy: rm.lastRemindedBy,
+        submitAt: null,
+        confirmedAt: null,
+        confirmedBy: null
+      };
+      supplementCycles.push(cycleMap[rm.cycle]);
+    }
+  }
+  for (const log of logs) {
+    if (log.action === 'submit_supplement') {
+      const cycle = r.supplementCycle;
+      if (cycleMap[cycle]) {
+        cycleMap[cycle].submitAt = log.operatedAt;
+      }
+    }
+    if (log.action === 'confirm_supplement_complete') {
+      const cycle = r.supplementCycle;
+      if (cycleMap[cycle]) {
+        cycleMap[cycle].confirmedAt = log.operatedAt;
+        cycleMap[cycle].confirmedBy = log.operatorName;
+      }
+    }
+  }
+
   return {
     reimbursement: {
       ...r,
@@ -461,10 +524,20 @@ function exportArchive(id) {
       statusLabel: STATUS_LABEL[r.status],
       remindCount: decorate.remindCount,
       reminderCount: decorate.reminderCount,
-      overdue: decorate.overdue
+      overdue: decorate.overdue,
+      lastSupplementAt: r.lastSupplementAt || null,
+      supplementCycle: r.supplementCycle || 0,
+      missingAttachments: r.missingAttachments || [],
+      pendingConfirm: decorate.pendingConfirm || false
     },
     reminders,
-    operationLogs: logs
+    operationLogs: logs,
+    supplementSummary: {
+      totalCycles: r.supplementCycle || 0,
+      totalRemindCount: decorate.remindCount,
+      supplementLogsCount: supplementLogs.length,
+      cycles: supplementCycles
+    }
   };
 }
 

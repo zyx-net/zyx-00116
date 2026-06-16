@@ -149,16 +149,46 @@ async function runE2E() {
       ]
     }), '出差审批单');
 
-  await step('【申请人】两个都补齐 → 提交成功，状态转待复核', async () => {
+  await step('【申请人】两个都补齐 → 提交成功，状态保持待补件（待财务确认）', async () => {
     const result = await request('POST', `/api/reimbursements/${bxId}/submit-supplement`, 'u1', {
       attachments: [
         { id: 'att5', name: '酒店发票.pdf', category: '酒店发票', size: '180KB', uploadedAt: new Date().toISOString() },
         { id: 'att6', name: '出差审批单.pdf', category: '出差审批单', size: '150KB', uploadedAt: new Date().toISOString() }
       ]
     });
-    if (result.status !== 'pending_review') throw new Error('状态应变为待复核');
+    if (result.status !== 'pending_supplement') throw new Error('状态应保持待补件（待确认）');
     if (result.missingAttachments.length !== 0) throw new Error('缺失项应清空');
-    return `状态=${result.statusLabel}, 附件数=${result.attachments.length}`;
+    if (!result.pendingConfirm) throw new Error('pendingConfirm 应为 true');
+    if (!result.lastSupplementAt) throw new Error('lastSupplementAt 应存在');
+    return `状态=${result.statusLabel}, pendingConfirm=${result.pendingConfirm}, 附件数=${result.attachments.length}`;
+  });
+
+  await step('验证：补件任务面板中该单据显示为待确认', async () => {
+    const tasksRes = await request('GET', '/api/supplement-tasks', 'u3');
+    const task = tasksRes.tasks.find(t => t.id === bxId);
+    if (!task) throw new Error('补件任务列表中应包含该单据');
+    if (!task.pendingConfirm) throw new Error('pendingConfirm 应为 true');
+    if (task.statusLabel !== '待确认') throw new Error('状态标签应为待确认');
+    if (task.lastSupplementAt === null || task.lastSupplementAt === undefined) throw new Error('任务面板应有 lastSupplementAt');
+    if (task.missingCount !== 0) throw new Error('缺失数应为0');
+    return `任务面板状态: ${task.statusLabel}, 版本: v${task.version}`;
+  });
+
+  await stepFail('【财务】材料未补齐时不能确认 → 失败', () =>
+    request('POST', `/api/reimbursements/BX1002/confirm-supplement`, 'u3', {}),
+    '缺失附件');
+
+  await step('【财务】确认补件完成 → 状态转待复核', async () => {
+    const result = await request('POST', `/api/reimbursements/${bxId}/confirm-supplement`, 'u3', {});
+    if (result.status !== 'pending_review') throw new Error('状态应变为待复核');
+    return `状态=${result.statusLabel}, 版本: v${result.version}`;
+  });
+
+  await step('验证：确认后单据从补件任务面板消失', async () => {
+    const tasksRes = await request('GET', '/api/supplement-tasks', 'u3');
+    const task = tasksRes.tasks.find(t => t.id === bxId);
+    if (task) throw new Error('确认后单据应从补件任务列表消失');
+    return `补件任务列表中已无该单据`;
   });
 
   await step('【财务复核员】复核通过，状态变为已通过', async () => {

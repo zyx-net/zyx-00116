@@ -29,8 +29,10 @@ function seed() {
     rejectReason: null,
     deadline: null,
     supplementCycle: 0,
+    lastSupplementAt: null,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    version: 1
   };
 
   const r2 = {
@@ -48,8 +50,10 @@ function seed() {
     rejectReason: null,
     deadline: addDays(now, -1),
     supplementCycle: 1,
+    lastSupplementAt: null,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    version: 3
   };
 
   const r3 = {
@@ -68,8 +72,10 @@ function seed() {
     rejectReason: null,
     deadline: null,
     supplementCycle: 0,
+    lastSupplementAt: null,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    version: 2
   };
 
   const r4 = {
@@ -87,8 +93,10 @@ function seed() {
     rejectReason: '缺少招待人员名单和事由说明',
     deadline: null,
     supplementCycle: 0,
+    lastSupplementAt: null,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    version: 2
   };
 
   const r5 = {
@@ -106,8 +114,10 @@ function seed() {
     rejectReason: null,
     deadline: null,
     supplementCycle: 0,
+    lastSupplementAt: null,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    version: 3
   };
 
   const r6 = {
@@ -125,10 +135,12 @@ function seed() {
     rejectReason: null,
     deadline: null,
     supplementCycle: 0,
+    lastSupplementAt: null,
     archivedAt: now,
     archivedBy: 'u4',
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    version: 4
   };
 
   data.reimbursements = [r1, r2, r3, r4, r5, r6];
@@ -142,9 +154,12 @@ function seed() {
     operatorName: '李四',
     message: '请补充以下附件：发票、入库单',
     deadline: r2.deadline,
-    remindedAt: now,
-    lastRemindedAt: now,
-    remindCount: 2
+    remindedAt: addDays(now, -2),
+    lastRemindedAt: addDays(now, -1),
+    remindCount: 2,
+    lastRemindedBy: '李四',
+    assigneeId: applicantId,
+    assigneeName: '张三'
   };
   data.reminders = [reminder];
 

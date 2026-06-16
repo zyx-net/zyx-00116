@@ -64,6 +64,7 @@ function normalizeReimbursement(r) {
     rejectReason: r.rejectReason || null,
     deadline: r.deadline || null,
     supplementCycle: r.supplementCycle || 0,
+    lastSupplementAt: r.lastSupplementAt || null,
     createdAt: r.createdAt || now,
     updatedAt: r.updatedAt || now,
     version: r.version || 1,
