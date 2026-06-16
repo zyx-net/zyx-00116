@@ -36,11 +36,34 @@
       <section class="content">
         <div class="list-panel">
           <div class="panel-header">
-            <h2 id="listTitle">报销单列表</h2>
+            <div class="tab-switcher">
+              <div class="tab-item active" data-tab="list">📋 报销单列表</div>
+              <div class="tab-item" data-tab="tasks">⏰ 补件任务</div>
+            </div>
             <button class="btn btn-primary" id="createBtn" style="display:none">+ 新建报销单</button>
           </div>
           <div class="list-container" id="listContainer">
             <div class="empty-state">加载中...</div>
+          </div>
+          <div class="task-panel" id="taskPanel" style="display:none">
+            <div class="task-toolbar">
+              <div class="task-stats">
+                <span class="task-stat">
+                  <span class="task-stat-label">待补件</span>
+                  <span class="task-stat-value" id="taskTotalCount">0</span>
+                </span>
+                <span class="task-stat overdue">
+                  <span class="task-stat-label">已逾期</span>
+                  <span class="task-stat-value" id="taskOverdueCount">0</span>
+                </span>
+              </div>
+              <div class="task-actions">
+                <button class="btn btn-warning btn-sm" id="batchRemindBtn" disabled>⏰ 批量催办</button>
+              </div>
+            </div>
+            <div class="task-list" id="taskListContainer">
+              <div class="empty-state">加载中...</div>
+            </div>
           </div>
         </div>
 

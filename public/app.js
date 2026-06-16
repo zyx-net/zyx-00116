@@ -20,14 +20,30 @@ const API = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || '操作失败');
     return data;
+  },
+  async put(path, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (getUserId()) headers['X-User-Id'] = getUserId();
+    const res = await fetch(path, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body || {})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '操作失败');
+    return data;
   }
 };
 
 let currentUser = null;
 let meta = null;
 let currentStatus = 'all';
+let currentTab = 'list';
 let currentId = null;
 let listData = [];
+let taskData = [];
+let selectedTaskIds = new Set();
+let editingDeadlineId = null;
 
 async function init() {
   meta = await API.get('/api/meta');
@@ -51,6 +67,31 @@ function bindEvents() {
   document.getElementById('resetBtn').addEventListener('click', resetData);
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.querySelector('.modal-mask').addEventListener('click', closeModal);
+
+  document.querySelectorAll('.tab-item').forEach(tab => {
+    tab.addEventListener('click', () => {
+      switchTab(tab.dataset.tab);
+    });
+  });
+
+  document.getElementById('batchRemindBtn').addEventListener('click', handleBatchRemind);
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-item').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.getElementById('listContainer').style.display = tab === 'list' ? 'block' : 'none';
+  document.getElementById('taskPanel').style.display = tab === 'tasks' ? 'flex' : 'none';
+  document.getElementById('createBtn').style.display =
+    tab === 'list' && currentUser.role === 'applicant' ? 'inline-block' : 'none';
+
+  if (tab === 'tasks') {
+    loadTaskList();
+  } else {
+    loadList();
+  }
 }
 
 function switchUser(userId) {
@@ -58,11 +99,16 @@ function switchUser(userId) {
   currentUser = user;
   document.getElementById('roleSelect').value = userId;
   document.getElementById('createBtn').style.display =
-    user.role === 'applicant' ? 'inline-block' : 'none';
+    currentTab === 'list' && user.role === 'applicant' ? 'inline-block' : 'none';
   currentStatus = 'all';
   currentId = null;
+  selectedTaskIds.clear();
   renderStatusNav();
-  loadList();
+  if (currentTab === 'tasks') {
+    loadTaskList();
+  } else {
+    loadList();
+  }
   renderDetailEmpty();
 }
 
@@ -74,6 +120,20 @@ async function loadList() {
   listData = data.list;
   renderList();
   updateTodoCount();
+}
+
+async function loadTaskList() {
+  const data = await API.get('/api/supplement-tasks');
+  taskData = data.tasks;
+  renderTaskList();
+  updateTaskStats();
+}
+
+function updateTaskStats() {
+  document.getElementById('taskTotalCount').textContent = taskData.length;
+  document.getElementById('taskOverdueCount').textContent = taskData.filter(t => t.overdue).length;
+  document.getElementById('batchRemindBtn').disabled =
+    selectedTaskIds.size === 0 || !['auditor', 'finance'].includes(currentUser.role);
 }
 
 function renderStatusNav() {
@@ -150,6 +210,186 @@ function renderList() {
   });
 }
 
+function renderTaskList() {
+  const container = document.getElementById('taskListContainer');
+  const isFinanceRole = ['auditor', 'finance'].includes(currentUser.role);
+
+  if (taskData.length === 0) {
+    container.innerHTML = '<div class="empty-state">暂无补件任务</div>';
+    return;
+  }
+
+  container.innerHTML = taskData.map(t => {
+    const isSelected = selectedTaskIds.has(t.id);
+    const isEditing = editingDeadlineId === t.id;
+    const deadlineText = formatDeadlineDisplay(t);
+
+    return `
+      <div class="task-item ${currentId === t.id ? 'active' : ''} ${isSelected ? 'selected' : ''}" data-id="${t.id}">
+        <div class="task-item-header">
+          ${isFinanceRole ? `<input type="checkbox" class="task-checkbox" data-task-id="${t.id}" ${isSelected ? 'checked' : ''}>` : ''}
+          <span class="task-title">${t.title}</span>
+          <span class="task-id">${t.id}</span>
+        </div>
+        <div class="task-meta">
+          <span class="task-meta-item task-assignee">👤 ${t.applicantName}</span>
+          <span class="task-meta-item task-amount">¥${Number(t.amount).toFixed(2)}</span>
+          <span class="task-meta-item ${t.overdue ? 'overdue' : (t.remainingDays <= 1 ? 'warning' : '')}">
+            ⏰ ${deadlineText}
+          </span>
+          <span class="task-meta-item">
+            📢 ${t.remindCount} 次催办
+          </span>
+          <span class="task-meta-item">
+            📅 最近催办：${t.lastReminderAt ? formatDate(t.lastReminderAt) : '-'}
+          </span>
+        </div>
+        ${isFinanceRole ? `
+        <div class="task-quick-actions">
+          ${isEditing ? `
+            <input type="date" id="deadline-input-${t.id}" value="${t.deadline ? t.deadline.slice(0, 10) : ''}">
+            <button class="btn btn-success btn-sm" data-action="save-deadline" data-id="${t.id}">保存</button>
+            <button class="btn btn-secondary btn-sm" data-action="cancel-deadline" data-id="${t.id}">取消</button>
+          ` : `
+            <button class="btn btn-warning btn-sm" data-action="remind" data-id="${t.id}" data-version="${t.version}">催办</button>
+            <button class="btn btn-primary btn-sm" data-action="edit-deadline" data-id="${t.id}">改截止</button>
+            <button class="btn btn-success btn-sm" data-action="confirm-complete" data-id="${t.id}" data-version="${t.version}">确认完成</button>
+          `}
+        </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.task-checkbox').forEach(cb => {
+    cb.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = cb.dataset.taskId;
+      if (cb.checked) {
+        selectedTaskIds.add(id);
+      } else {
+        selectedTaskIds.delete(id);
+      }
+      cb.closest('.task-item').classList.toggle('selected', cb.checked);
+      updateTaskStats();
+    });
+  });
+
+  container.querySelectorAll('.task-item').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('.task-checkbox') ||
+          e.target.closest('.task-quick-actions') ||
+          e.target.closest('input')) {
+        return;
+      }
+      currentId = el.dataset.id;
+      renderTaskList();
+      loadDetail();
+    });
+  });
+
+  container.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      const version = parseInt(btn.dataset.version) || undefined;
+      handleTaskAction(action, id, version);
+    });
+  });
+}
+
+function formatDeadlineDisplay(t) {
+  if (!t.deadline) return '无截止时间';
+  if (t.overdue) {
+    return `已逾期 ${Math.abs(t.remainingDays)} 天`;
+  }
+  if (t.remainingDays <= 1) {
+    return `剩余 ${t.remainingDays} 天（${t.deadline.slice(0, 10)}）`;
+  }
+  return `剩余 ${t.remainingDays} 天`;
+}
+
+async function handleTaskAction(action, id, version) {
+  const task = taskData.find(t => t.id === id);
+  if (!task) return;
+
+  try {
+    switch (action) {
+      case 'remind':
+        await API.post(`/api/reimbursements/${id}/remind`, { version });
+        toast('催办成功', 'success');
+        refreshAll();
+        break;
+      case 'edit-deadline':
+        editingDeadlineId = id;
+        renderTaskList();
+        setTimeout(() => {
+          const input = document.getElementById(`deadline-input-${id}`);
+          if (input) input.focus();
+        }, 50);
+        break;
+      case 'save-deadline':
+        const input = document.getElementById(`deadline-input-${id}`);
+        const newDeadline = input ? input.value : '';
+        if (!newDeadline) {
+          toast('请选择截止日期', 'error');
+          return;
+        }
+        await API.put(`/api/reimbursements/${id}/deadline`, {
+          newDeadline: new Date(newDeadline).toISOString(),
+          version: task.version
+        });
+        toast('截止时间已更新', 'success');
+        editingDeadlineId = null;
+        refreshAll();
+        break;
+      case 'cancel-deadline':
+        editingDeadlineId = null;
+        renderTaskList();
+        break;
+      case 'confirm-complete':
+        if (!confirm('确定确认补件完成吗？确认后将进入待复核状态。')) return;
+        await API.post(`/api/reimbursements/${id}/confirm-supplement`, { version });
+        toast('补件完成已确认', 'success');
+        refreshAll();
+        break;
+    }
+  } catch (e) {
+    if (e.message.includes('版本冲突')) {
+      toast(e.message + '，正在刷新...', 'error');
+      setTimeout(() => {
+        refreshAll();
+      }, 1500);
+    } else {
+      toast(e.message, 'error');
+    }
+  }
+}
+
+async function handleBatchRemind() {
+  if (selectedTaskIds.size === 0) {
+    toast('请先选择要催办的单据', 'error');
+    return;
+  }
+  if (!confirm(`确定催办选中的 ${selectedTaskIds.size} 张单据吗？`)) return;
+
+  try {
+    const result = await API.post('/api/reimbursements/batch-remind', {
+      ids: Array.from(selectedTaskIds)
+    });
+    const successCount = result.success.length;
+    const failCount = result.failed.length;
+    let msg = `批量催办完成：成功 ${successCount} 条`;
+    if (failCount > 0) msg += `，失败 ${failCount} 条`;
+    toast(msg, failCount > 0 ? 'info' : 'success');
+    selectedTaskIds.clear();
+    refreshAll();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
 function renderDetailEmpty() {
   document.getElementById('detailPanel').innerHTML = `
     <div class="empty-state">
@@ -194,6 +434,10 @@ function renderDetail(d) {
         <div class="detail-row">
           <span class="detail-label">催办次数</span>
           <span class="detail-value">${d.remindCount} 次</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">版本号</span>
+          <span class="detail-value">v${d.version || 1}</span>
         </div>
       </div>
     </div>
@@ -313,6 +557,7 @@ function renderReminders(list) {
       <div class="reminder-msg">${r.message}</div>
       <div style="margin-top:6px;font-size:12px;color:#999">
         补件轮次：第 ${r.cycle} 轮 · 截止：${formatDate(r.deadline)}
+        ${r.assigneeName ? ` · 负责人：${r.assigneeName}` : ''}
       </div>
       <div style="margin-top:4px;font-size:11px;color:#1890ff">
         首次催办：${formatDate(r.remindedAt)} ${r.lastRemindedAt && r.lastRemindedAt !== r.remindedAt ? `· 最新催办：${formatDate(r.lastRemindedAt)}` : ''}
@@ -333,6 +578,8 @@ function renderLogs(list) {
     request_supplement: '发起补件',
     submit_supplement: '提交补件',
     remind_again: '催办',
+    update_deadline: '修改截止时间',
+    confirm_supplement_complete: '确认补件完成',
     archive: '归档'
   };
   return list.map(l => `
@@ -351,6 +598,8 @@ function logColor(action) {
   if (action.includes('reject')) return '#f5222d';
   if (action.includes('supplement') || action.includes('remind')) return '#fa8c16';
   if (action === 'archive') return '#722ed1';
+  if (action === 'update_deadline') return '#1890ff';
+  if (action === 'confirm_supplement_complete') return '#52c41a';
   return '#1890ff';
 }
 
@@ -363,23 +612,25 @@ function renderActions(d) {
   const role = currentUser.role;
   const btns = [];
   if (role === 'auditor' && d.status === 'pending_audit') {
-    btns.push(`<button class="btn btn-success" data-action="approve">✅ 初审通过</button>`);
-    btns.push(`<button class="btn btn-warning" data-action="supplement">📨 发起补件</button>`);
-    btns.push(`<button class="btn btn-danger" data-action="reject">❌ 驳回</button>`);
+    btns.push(`<button class="btn btn-success" data-action="approve" data-version="${d.version}">✅ 初审通过</button>`);
+    btns.push(`<button class="btn btn-warning" data-action="supplement" data-version="${d.version}">📨 发起补件</button>`);
+    btns.push(`<button class="btn btn-danger" data-action="reject" data-version="${d.version}">❌ 驳回</button>`);
   }
   if (role === 'finance' && d.status === 'pending_review') {
-    btns.push(`<button class="btn btn-success" data-action="approve">✅ 复核通过</button>`);
-    btns.push(`<button class="btn btn-warning" data-action="supplement">📨 发起补件</button>`);
-    btns.push(`<button class="btn btn-danger" data-action="reject">❌ 驳回</button>`);
+    btns.push(`<button class="btn btn-success" data-action="approve" data-version="${d.version}">✅ 复核通过</button>`);
+    btns.push(`<button class="btn btn-warning" data-action="supplement" data-version="${d.version}">📨 发起补件</button>`);
+    btns.push(`<button class="btn btn-danger" data-action="reject" data-version="${d.version}">❌ 驳回</button>`);
   }
   if ((role === 'auditor' || role === 'finance') && d.status === 'pending_supplement') {
-    btns.push(`<button class="btn btn-warning" data-action="remind">⏰ 再次催办</button>`);
+    btns.push(`<button class="btn btn-warning" data-action="remind" data-version="${d.version}">⏰ 再次催办</button>`);
+    btns.push(`<button class="btn btn-primary" data-action="edit-deadline-detail" data-version="${d.version}">📅 修改截止时间</button>`);
+    btns.push(`<button class="btn btn-success" data-action="confirm-complete-detail" data-version="${d.version}">✅ 确认补件完成</button>`);
   }
   if (role === 'applicant' && d.status === 'pending_supplement' && d.applicantId === currentUser.id) {
-    btns.push(`<button class="btn btn-primary" data-action="submit-supplement">📎 提交补件</button>`);
+    btns.push(`<button class="btn btn-primary" data-action="submit-supplement" data-version="${d.version}">📎 提交补件</button>`);
   }
   if (role === 'archiver' && d.status === 'approved') {
-    btns.push(`<button class="btn btn-primary" data-action="archive">📦 归档</button>`);
+    btns.push(`<button class="btn btn-primary" data-action="archive" data-version="${d.version}">📦 归档</button>`);
   }
   if (role === 'archiver' && d.status === 'archived') {
     btns.push(`<button class="btn btn-secondary" data-action="export" style="background:#722ed1;color:white;border-color:#722ed1">⬇️ 导出归档</button>`);
@@ -392,34 +643,46 @@ function renderActions(d) {
 
 function bindDetailActions(d) {
   document.querySelectorAll('[data-action]').forEach(btn => {
-    btn.addEventListener('click', () => handleAction(btn.dataset.action, d));
+    btn.addEventListener('click', () => {
+      const version = parseInt(btn.dataset.version) || undefined;
+      handleAction(btn.dataset.action, d, version);
+    });
   });
 }
 
-async function handleAction(action, d) {
+async function handleAction(action, d, version) {
   try {
     switch (action) {
       case 'approve':
-        await API.post(`/api/reimbursements/${d.id}/approve`);
+        await API.post(`/api/reimbursements/${d.id}/approve`, { version });
         toast('操作成功', 'success');
         refreshAll();
         break;
       case 'reject':
-        showRejectModal(d);
+        showRejectModal(d, version);
         break;
       case 'supplement':
-        showSupplementModal(d);
+        showSupplementModal(d, version);
         break;
       case 'remind':
-        const rm = await API.post(`/api/reimbursements/${d.id}/remind`);
+        const rm = await API.post(`/api/reimbursements/${d.id}/remind`, { version });
         toast(`已催办，当前第 ${rm.remindCount} 次（同一周期历史合并）`, 'info');
         refreshAll();
         break;
+      case 'edit-deadline-detail':
+        showDeadlineModal(d, version);
+        break;
+      case 'confirm-complete-detail':
+        if (!confirm('确定确认补件完成吗？确认后将进入待复核状态。')) return;
+        await API.post(`/api/reimbursements/${d.id}/confirm-supplement`, { version });
+        toast('补件完成已确认', 'success');
+        refreshAll();
+        break;
       case 'submit-supplement':
-        showSubmitSupplementModal(d);
+        showSubmitSupplementModal(d, version);
         break;
       case 'archive':
-        await API.post(`/api/reimbursements/${d.id}/archive`);
+        await API.post(`/api/reimbursements/${d.id}/archive`, { version });
         toast('归档成功', 'success');
         refreshAll();
         break;
@@ -428,8 +691,71 @@ async function handleAction(action, d) {
         break;
     }
   } catch (e) {
-    toast(e.message, 'error');
+    if (e.message.includes('版本冲突')) {
+      toast(e.message + '，正在刷新...', 'error');
+      setTimeout(() => {
+        refreshAll();
+      }, 1500);
+    } else {
+      toast(e.message, 'error');
+    }
   }
+}
+
+function showDeadlineModal(d, version) {
+  const currentDeadline = d.deadline ? d.deadline.slice(0, 10) : '';
+  openModal('修改截止时间', `
+    <p style="margin-bottom:12px;color:#666">当前截止时间：${d.deadline ? formatDate(d.deadline) : '未设置'}</p>
+    <div class="form-group">
+      <label>新截止日期</label>
+      <input type="date" id="new-deadline" value="${currentDeadline}">
+    </div>
+    <div class="form-group">
+      <label>或选择延期天数</label>
+      <select id="deadline-days-select">
+        <option value="">-- 选择天数 --</option>
+        <option value="1">延期 1 天</option>
+        <option value="3">延期 3 天</option>
+        <option value="5">延期 5 天</option>
+        <option value="7">延期 7 天</option>
+        <option value="15">延期 15 天</option>
+      </select>
+    </div>
+  `, async () => {
+    const dateInput = document.getElementById('new-deadline');
+    const daysSelect = document.getElementById('deadline-days-select');
+    let newDeadline = null;
+
+    if (daysSelect.value) {
+      const days = parseInt(daysSelect.value);
+      const baseDate = d.deadline ? new Date(d.deadline) : new Date();
+      baseDate.setDate(baseDate.getDate() + days);
+      newDeadline = baseDate.toISOString();
+    } else if (dateInput.value) {
+      newDeadline = new Date(dateInput.value).toISOString();
+    }
+
+    if (!newDeadline) {
+      toast('请选择新的截止时间', 'error');
+      return false;
+    }
+
+    try {
+      await API.put(`/api/reimbursements/${d.id}/deadline`, { newDeadline, version });
+      toast('截止时间已更新', 'success');
+      closeModal();
+      refreshAll();
+    } catch (e) {
+      toast(e.message, 'error');
+      if (e.message.includes('版本冲突')) {
+        setTimeout(() => {
+          closeModal();
+          refreshAll();
+        }, 1500);
+      }
+    }
+    return false;
+  }, '确认修改', 'btn-primary');
 }
 
 function showCreateModal() {
@@ -522,7 +848,7 @@ function collectAttachments() {
   return list;
 }
 
-function showRejectModal(d) {
+function showRejectModal(d, version) {
   openModal('驳回报销单', `
     <p style="margin-bottom:12px;color:#666">确定要驳回 <strong>${d.id}</strong> 吗？</p>
     <div class="form-group">
@@ -532,18 +858,23 @@ function showRejectModal(d) {
   `, () => {
     const reason = document.getElementById('reject-reason').value.trim();
     if (!reason) { toast('请填写驳回原因', 'error'); return false; }
-    API.post(`/api/reimbursements/${d.id}/reject`, { reason })
+    API.post(`/api/reimbursements/${d.id}/reject`, { reason, version })
       .then(() => {
         toast('已驳回', 'success');
         closeModal();
         refreshAll();
       })
-      .catch(e => toast(e.message, 'error'));
+      .catch(e => {
+        toast(e.message, 'error');
+        if (e.message.includes('版本冲突')) {
+          setTimeout(() => { closeModal(); refreshAll(); }, 1500);
+        }
+      });
     return false;
   }, '确认驳回', 'btn-danger');
 }
 
-function showSupplementModal(d) {
+function showSupplementModal(d, version) {
   openModal('发起补件', `
     <p style="margin-bottom:12px;color:#666">请选择缺失的附件类型，设置补件截止时间</p>
     <div class="form-group">
@@ -575,19 +906,24 @@ function showSupplementModal(d) {
     if (missing.length === 0) { toast('请选择缺失的附件', 'error'); return false; }
     const days = parseInt(document.getElementById('deadline-days').value) || 3;
     API.post(`/api/reimbursements/${d.id}/request-supplement`, {
-      missingAttachments: missing, deadlineDays: days
+      missingAttachments: missing, deadlineDays: days, version
     })
       .then(() => {
         toast('补件已发起', 'success');
         closeModal();
         refreshAll();
       })
-      .catch(e => toast(e.message, 'error'));
+      .catch(e => {
+        toast(e.message, 'error');
+        if (e.message.includes('版本冲突')) {
+          setTimeout(() => { closeModal(); refreshAll(); }, 1500);
+        }
+      });
     return false;
   }, '发起补件', 'btn-warning');
 }
 
-function showSubmitSupplementModal(d) {
+function showSubmitSupplementModal(d, version) {
   openModal('提交补件材料', `
     <p style="margin-bottom:12px;color:#666">请上传缺失的附件材料</p>
     <div class="section-title">当前缺失</div>
@@ -600,13 +936,18 @@ function showSubmitSupplementModal(d) {
   `, () => {
     const attachments = collectAttachments();
     if (attachments.length === 0) { toast('请至少添加一个附件', 'error'); return false; }
-    API.post(`/api/reimbursements/${d.id}/submit-supplement`, { attachments })
+    API.post(`/api/reimbursements/${d.id}/submit-supplement`, { attachments, version })
       .then(() => {
         toast('补件已提交', 'success');
         closeModal();
         refreshAll();
       })
-      .catch(e => toast(e.message, 'error'));
+      .catch(e => {
+        toast(e.message, 'error');
+        if (e.message.includes('版本冲突')) {
+          setTimeout(() => { closeModal(); refreshAll(); }, 1500);
+        }
+      });
     return false;
   }, '提交补件', 'btn-primary');
   setupAttachFields();
@@ -644,7 +985,11 @@ function formatDate(iso) {
 }
 
 function refreshAll() {
-  loadList();
+  if (currentTab === 'tasks') {
+    loadTaskList();
+  } else {
+    loadList();
+  }
   if (currentId) loadDetail();
 }
 

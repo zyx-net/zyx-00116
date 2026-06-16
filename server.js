@@ -52,6 +52,15 @@ app.get('/api/reimbursements', requireAuth, (req, res) => {
   res.json({ list });
 });
 
+app.get('/api/supplement-tasks', requireAuth, (req, res) => {
+  const filter = {};
+  if (req.user.role === 'applicant') {
+    filter.applicantId = req.user.id;
+  }
+  const tasks = service.listSupplementTasks(filter);
+  res.json({ tasks });
+});
+
 app.get('/api/reimbursements/:id', requireAuth, (req, res) => {
   const detail = service.getReimbursementDetail(req.params.id);
   if (!detail) return res.status(404).json({ error: '报销单不存在' });
@@ -69,8 +78,8 @@ app.post('/api/reimbursements', requireAuth, (req, res) => {
 
 app.post('/api/reimbursements/:id/request-supplement', requireAuth, (req, res) => {
   try {
-    const { missingAttachments, deadlineDays } = req.body;
-    const result = service.auditRequestSupplement(req.params.id, req.user.id, missingAttachments, deadlineDays);
+    const { missingAttachments, deadlineDays, version } = req.body;
+    const result = service.auditRequestSupplement(req.params.id, req.user.id, missingAttachments, deadlineDays, version);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -79,7 +88,38 @@ app.post('/api/reimbursements/:id/request-supplement', requireAuth, (req, res) =
 
 app.post('/api/reimbursements/:id/remind', requireAuth, (req, res) => {
   try {
-    const result = service.remindAgain(req.params.id, req.user.id);
+    const { version } = req.body;
+    const result = service.remindAgain(req.params.id, req.user.id, version);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/reimbursements/batch-remind', requireAuth, (req, res) => {
+  try {
+    const { ids } = req.body;
+    const result = service.batchRemind(ids, req.user.id);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/reimbursements/:id/deadline', requireAuth, (req, res) => {
+  try {
+    const { newDeadline, version } = req.body;
+    const result = service.updateDeadline(req.params.id, req.user.id, newDeadline, version);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/reimbursements/:id/confirm-supplement', requireAuth, (req, res) => {
+  try {
+    const { version } = req.body;
+    const result = service.confirmSupplementComplete(req.params.id, req.user.id, version);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -88,8 +128,8 @@ app.post('/api/reimbursements/:id/remind', requireAuth, (req, res) => {
 
 app.post('/api/reimbursements/:id/submit-supplement', requireAuth, (req, res) => {
   try {
-    const { attachments } = req.body;
-    const result = service.submitSupplement(req.params.id, req.user.id, attachments);
+    const { attachments, version } = req.body;
+    const result = service.submitSupplement(req.params.id, req.user.id, attachments, version);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -98,7 +138,8 @@ app.post('/api/reimbursements/:id/submit-supplement', requireAuth, (req, res) =>
 
 app.post('/api/reimbursements/:id/approve', requireAuth, (req, res) => {
   try {
-    const result = service.auditApprove(req.params.id, req.user.id);
+    const { version } = req.body;
+    const result = service.auditApprove(req.params.id, req.user.id, version);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -107,8 +148,8 @@ app.post('/api/reimbursements/:id/approve', requireAuth, (req, res) => {
 
 app.post('/api/reimbursements/:id/reject', requireAuth, (req, res) => {
   try {
-    const { reason } = req.body;
-    const result = service.auditReject(req.params.id, req.user.id, reason);
+    const { reason, version } = req.body;
+    const result = service.auditReject(req.params.id, req.user.id, reason, version);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -117,7 +158,8 @@ app.post('/api/reimbursements/:id/reject', requireAuth, (req, res) => {
 
 app.post('/api/reimbursements/:id/archive', requireAuth, (req, res) => {
   try {
-    const result = service.archive(req.params.id, req.user.id);
+    const { version } = req.body;
+    const result = service.archive(req.params.id, req.user.id, version);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message });

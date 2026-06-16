@@ -54,6 +54,20 @@ function getReimbursementDetail(id) {
   };
 }
 
+function bumpVersion(r) {
+  r.version = (r.version || 1) + 1;
+  r.updatedAt = nowISO();
+}
+
+function checkVersion(r, expectedVersion) {
+  if (expectedVersion !== undefined && expectedVersion !== null) {
+    const currentVersion = r.version || 1;
+    if (currentVersion !== expectedVersion) {
+      throw new Error('版本冲突：该单据已被他人修改，请刷新后重试');
+    }
+  }
+}
+
 function createReimbursement(payload, operatorId) {
   const data = loadData();
   const id = genId(data, 'BX');
@@ -72,7 +86,8 @@ function createReimbursement(payload, operatorId) {
     deadline: null,
     supplementCycle: 0,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    version: 1
   };
   data.reimbursements.push(r);
   logOperation(data, id, operatorId, 'create', '创建报销单');
@@ -108,25 +123,26 @@ function assertStatus(r, allowedStatuses, msg = '当前状态不允许此操作'
   }
 }
 
-function auditReject(id, operatorId, reason) {
+function auditReject(id, operatorId, reason, expectedVersion) {
   const data = loadData();
   const r = data.reimbursements.find(x => x.id === id);
   if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
   assertRole(operatorId, ['auditor', 'finance']);
   assertStatus(r, [STATUS.PENDING_AUDIT, STATUS.PENDING_REVIEW]);
   r.status = STATUS.REJECTED;
   r.rejectReason = reason;
-  r.updatedAt = nowISO();
-  const op = USERS.find(u => u.id === operatorId);
+  bumpVersion(r);
   logOperation(data, id, operatorId, 'reject', `驳回，原因：${reason}`);
   saveData(data);
   return getReimbursement(id);
 }
 
-function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays = 3) {
+function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays = 3, expectedVersion) {
   const data = loadData();
   const r = data.reimbursements.find(x => x.id === id);
   if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
   assertRole(operatorId, ['auditor', 'finance']);
   assertStatus(r, [STATUS.PENDING_AUDIT, STATUS.PENDING_REVIEW], '仅待审核/待复核状态可发起补件');
   const missing = Array.isArray(missingAttachments) ? missingAttachments : [];
@@ -138,8 +154,9 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
   r.supplementCycle = (r.supplementCycle || 0) + 1;
   const now = nowISO();
   r.deadline = addDays(now, deadlineDays);
-  r.updatedAt = now;
+  bumpVersion(r);
   const op = USERS.find(u => u.id === operatorId);
+  const applicant = USERS.find(u => u.id === r.applicantId);
   logOperation(data, id, operatorId, 'request_supplement',
     `发起补件，缺失：${missing.join('、')}，截止：${r.deadline.slice(0, 10)}`);
   const reminder = {
@@ -152,22 +169,27 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
     deadline: r.deadline,
     remindedAt: now,
     lastRemindedAt: now,
-    remindCount: 1
+    remindCount: 1,
+    lastRemindedBy: op ? op.name : '未知',
+    assigneeId: r.applicantId,
+    assigneeName: applicant ? applicant.name : '未知'
   };
   data.reminders.push(reminder);
   saveData(data);
   return getReimbursement(id);
 }
 
-function remindAgain(id, operatorId) {
+function remindAgain(id, operatorId, expectedVersion) {
   const data = loadData();
   const r = data.reimbursements.find(x => x.id === id);
   if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
   assertRole(operatorId, ['auditor', 'finance']);
   assertStatus(r, [STATUS.PENDING_SUPPLEMENT], '仅待补件状态可催办');
   const cycle = r.supplementCycle;
   let reminder = data.reminders.find(rm => rm.reimbursementId === id && rm.cycle === cycle);
   const op = USERS.find(u => u.id === operatorId);
+  const applicant = USERS.find(u => u.id === r.applicantId);
   const now = nowISO();
   if (reminder) {
     reminder.remindCount += 1;
@@ -186,20 +208,160 @@ function remindAgain(id, operatorId) {
       deadline: r.deadline,
       remindedAt: now,
       lastRemindedAt: now,
-      remindCount: 1
+      remindCount: 1,
+      lastRemindedBy: op ? op.name : '未知',
+      assigneeId: r.applicantId,
+      assigneeName: applicant ? applicant.name : '未知'
     };
     data.reminders.push(reminder);
     logOperation(data, id, operatorId, 'remind_again', '首次催办');
   }
-  r.updatedAt = nowISO();
+  bumpVersion(r);
   saveData(data);
   return reminder;
 }
 
-function submitSupplement(id, operatorId, newAttachments) {
+function batchRemind(ids, operatorId) {
+  assertRole(operatorId, ['auditor', 'finance']);
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new Error('请选择要催办的单据');
+  }
+  const results = { success: [], failed: [] };
+  for (const id of ids) {
+    try {
+      const rm = remindAgain(id, operatorId);
+      results.success.push({ id, remindCount: rm.remindCount });
+    } catch (e) {
+      results.failed.push({ id, error: e.message });
+    }
+  }
+  return results;
+}
+
+function updateDeadline(id, operatorId, newDeadline, expectedVersion) {
   const data = loadData();
   const r = data.reimbursements.find(x => x.id === id);
   if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
+  assertStatus(r, [STATUS.PENDING_SUPPLEMENT], '仅待补件状态可修改截止时间');
+
+  const user = USERS.find(u => u.id === operatorId);
+  if (!user) throw new Error('用户不存在');
+
+  if (user.role === 'applicant') {
+    if (r.applicantId !== operatorId) {
+      throw new Error('无权限修改他人报销单的截止时间');
+    }
+    throw new Error('申请人无权限修改截止时间，请联系审核员或财务');
+  }
+
+  if (!['auditor', 'finance'].includes(user.role)) {
+    throw new Error('无权限修改截止时间');
+  }
+
+  if (!newDeadline) {
+    throw new Error('请指定新的截止时间');
+  }
+
+  const deadlineDate = new Date(newDeadline);
+  if (isNaN(deadlineDate.getTime())) {
+    throw new Error('截止时间格式不正确');
+  }
+
+  const oldDeadline = r.deadline;
+  r.deadline = deadlineDate.toISOString();
+  bumpVersion(r);
+
+  const cycle = r.supplementCycle;
+  const reminder = data.reminders.find(rm => rm.reimbursementId === id && rm.cycle === cycle);
+  if (reminder) {
+    reminder.deadline = r.deadline;
+  }
+
+  logOperation(data, id, operatorId, 'update_deadline',
+    `修改截止时间：${oldDeadline ? oldDeadline.slice(0, 10) : '无'} → ${r.deadline.slice(0, 10)}`);
+
+  saveData(data);
+  return getReimbursement(id);
+}
+
+function confirmSupplementComplete(id, operatorId, expectedVersion) {
+  const data = loadData();
+  const r = data.reimbursements.find(x => x.id === id);
+  if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
+  assertRole(operatorId, ['auditor', 'finance']);
+  assertStatus(r, [STATUS.PENDING_SUPPLEMENT], '仅待补件状态可确认补件完成');
+
+  const required = r.missingAttachments || [];
+  const { unmatched } = matchAttachmentToMissing(r.attachments, required);
+  if (unmatched.length > 0) {
+    throw new Error(`仍有缺失附件未补充：${unmatched.join('、')}，无法确认补件完成`);
+  }
+
+  r.missingAttachments = [];
+  r.status = STATUS.PENDING_REVIEW;
+  bumpVersion(r);
+
+  logOperation(data, id, operatorId, 'confirm_supplement_complete',
+    '财务确认补件完成，进入待复核状态');
+
+  saveData(data);
+  return getReimbursement(id);
+}
+
+function listSupplementTasks(filter = {}) {
+  const data = loadData();
+  let list = data.reimbursements.filter(r => r.status === STATUS.PENDING_SUPPLEMENT);
+
+  if (filter.applicantId) {
+    list = list.filter(r => r.applicantId === filter.applicantId);
+  }
+
+  const tasks = list.map(r => {
+    const applicant = USERS.find(u => u.id === r.applicantId);
+    const reminders = data.reminders.filter(rm => rm.reimbursementId === r.id && rm.cycle === r.supplementCycle);
+    const currentReminder = reminders.length > 0 ? reminders[reminders.length - 1] : null;
+    const totalRemindCount = reminders.reduce((sum, rm) => sum + (rm.remindCount || 0), 0);
+    const overdue = r.deadline && isOverdue(r.deadline);
+    const remainingDays = r.deadline ? Math.ceil((new Date(r.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : null;
+
+    return {
+      id: r.id,
+      title: r.title,
+      amount: r.amount,
+      type: r.type,
+      applicantId: r.applicantId,
+      applicantName: applicant ? applicant.name : '未知',
+      status: r.status,
+      statusLabel: STATUS_LABEL[r.status],
+      missingAttachments: r.missingAttachments || [],
+      deadline: r.deadline,
+      remainingDays,
+      overdue,
+      supplementCycle: r.supplementCycle,
+      lastReminderAt: currentReminder ? currentReminder.lastRemindedAt : null,
+      remindCount: totalRemindCount,
+      version: r.version || 1,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt
+    };
+  });
+
+  tasks.sort((a, b) => {
+    if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+    if (a.deadline && b.deadline) return new Date(a.deadline) - new Date(b.deadline);
+    return 0;
+  });
+
+  return tasks;
+}
+
+function submitSupplement(id, operatorId, newAttachments, expectedVersion) {
+  const data = loadData();
+  const r = data.reimbursements.find(x => x.id === id);
+  if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
   assertRole(operatorId, ['applicant']);
   if (r.applicantId !== operatorId) {
     throw new Error('仅申请人可补充材料');
@@ -218,17 +380,18 @@ function submitSupplement(id, operatorId, newAttachments) {
   r.attachments = [...r.attachments, ...newAtts];
   r.missingAttachments = [];
   r.status = STATUS.PENDING_REVIEW;
-  r.updatedAt = nowISO();
+  bumpVersion(r);
   logOperation(data, id, operatorId, 'submit_supplement',
     `补齐全部缺失材料：${matched.map(m => m.missing).join('、')}，提交附件：${newAtts.map(a => a.name).join('、')}`);
   saveData(data);
   return getReimbursement(id);
 }
 
-function auditApprove(id, operatorId) {
+function auditApprove(id, operatorId, expectedVersion) {
   const data = loadData();
   const r = data.reimbursements.find(x => x.id === id);
   if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
   const user = USERS.find(u => u.id === operatorId);
   if (!user) throw new Error('用户不存在');
   if (r.status === STATUS.PENDING_AUDIT) {
@@ -246,27 +409,28 @@ function auditApprove(id, operatorId) {
   }
   if (r.status === STATUS.PENDING_AUDIT) {
     r.status = STATUS.PENDING_REVIEW;
-    r.updatedAt = nowISO();
+    bumpVersion(r);
     logOperation(data, id, operatorId, 'approve_audit', '初审通过，进入财务复核');
   } else {
     r.status = STATUS.APPROVED;
-    r.updatedAt = nowISO();
+    bumpVersion(r);
     logOperation(data, id, operatorId, 'approve_finance', '财务复核通过');
   }
   saveData(data);
   return getReimbursement(id);
 }
 
-function archive(id, operatorId) {
+function archive(id, operatorId, expectedVersion) {
   const data = loadData();
   const r = data.reimbursements.find(x => x.id === id);
   if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
   assertRole(operatorId, ['archiver']);
   assertStatus(r, [STATUS.APPROVED], '仅已通过状态可归档');
   r.status = STATUS.ARCHIVED;
   r.archivedAt = nowISO();
   r.archivedBy = operatorId;
-  r.updatedAt = nowISO();
+  bumpVersion(r);
   logOperation(data, id, operatorId, 'archive', '已归档');
   saveData(data);
   return getReimbursement(id);
@@ -283,11 +447,15 @@ function exportArchive(id) {
   const logs = data.operationLogs.filter(l => l.reimbursementId === id)
     .sort((a, b) => new Date(a.operatedAt) - new Date(b.operatedAt));
   const applicant = USERS.find(u => u.id === r.applicantId);
+  const decorate = decorateReimbursement(r);
   return {
     reimbursement: {
       ...r,
       applicantName: applicant ? applicant.name : '未知',
-      statusLabel: STATUS_LABEL[r.status]
+      statusLabel: STATUS_LABEL[r.status],
+      remindCount: decorate.remindCount,
+      reminderCount: decorate.reminderCount,
+      overdue: decorate.overdue
     },
     reminders,
     operationLogs: logs
@@ -313,6 +481,10 @@ module.exports = {
   auditReject,
   auditRequestSupplement,
   remindAgain,
+  batchRemind,
+  updateDeadline,
+  confirmSupplementComplete,
+  listSupplementTasks,
   submitSupplement,
   auditApprove,
   archive,

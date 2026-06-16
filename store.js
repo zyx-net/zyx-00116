@@ -49,6 +49,73 @@ function ensureDataDir() {
   }
 }
 
+function normalizeReimbursement(r) {
+  const now = nowISO();
+  return {
+    id: r.id,
+    title: r.title || '',
+    amount: r.amount || 0,
+    type: r.type || '差旅费',
+    description: r.description || '',
+    applicantId: r.applicantId || '',
+    status: r.status || STATUS.PENDING_AUDIT,
+    attachments: r.attachments || [],
+    missingAttachments: r.missingAttachments || [],
+    rejectReason: r.rejectReason || null,
+    deadline: r.deadline || null,
+    supplementCycle: r.supplementCycle || 0,
+    createdAt: r.createdAt || now,
+    updatedAt: r.updatedAt || now,
+    version: r.version || 1,
+    archivedAt: r.archivedAt || null,
+    archivedBy: r.archivedBy || null
+  };
+}
+
+function normalizeReminder(rm) {
+  const now = nowISO();
+  return {
+    id: rm.id,
+    reimbursementId: rm.reimbursementId,
+    cycle: rm.cycle || 1,
+    operatorId: rm.operatorId || '',
+    operatorName: rm.operatorName || '未知',
+    message: rm.message || '',
+    deadline: rm.deadline || null,
+    remindedAt: rm.remindedAt || now,
+    lastRemindedAt: rm.lastRemindedAt || rm.remindedAt || now,
+    remindCount: rm.remindCount || 1,
+    lastRemindedBy: rm.lastRemindedBy || rm.operatorName || '未知',
+    assigneeId: rm.assigneeId || null,
+    assigneeName: rm.assigneeName || null
+  };
+}
+
+function normalizeOperationLog(log) {
+  return {
+    id: log.id,
+    reimbursementId: log.reimbursementId,
+    operatorId: log.operatorId || '',
+    operatorName: log.operatorName || '未知',
+    operatorRole: log.operatorRole || 'unknown',
+    action: log.action || '',
+    remark: log.remark || '',
+    operatedAt: log.operatedAt || nowISO()
+  };
+}
+
+function normalizeData(data) {
+  if (!data) {
+    data = { reimbursements: [], reminders: [], operationLogs: [], seq: 1000 };
+  }
+  return {
+    reimbursements: (data.reimbursements || []).map(normalizeReimbursement),
+    reminders: (data.reminders || []).map(normalizeReminder),
+    operationLogs: (data.operationLogs || []).map(normalizeOperationLog),
+    seq: data.seq || 1000
+  };
+}
+
 function loadData() {
   ensureDataDir();
   if (!fs.existsSync(DATA_FILE)) {
@@ -61,7 +128,8 @@ function loadData() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(initial, null, 2), 'utf8');
     return initial;
   }
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  return normalizeData(raw);
 }
 
 function saveData(data) {
@@ -117,5 +185,6 @@ module.exports = {
   STATUS, STATUS_LABEL, ROLES, ROLE_LABEL, USERS,
   loadData, saveData, genId, nowISO, addDays, isOverdue,
   matchAttachmentToMissing,
+  normalizeData, normalizeReimbursement, normalizeReminder, normalizeOperationLog,
   DATA_DIR, DATA_FILE
 };
