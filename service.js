@@ -54,7 +54,7 @@ function getReimbursementDetail(id) {
 
 function createReimbursement(payload, operatorId) {
   const data = loadData();
-  const id = genId('BX');
+  const id = genId(data, 'BX');
   const now = nowISO();
   const r = {
     id,
@@ -81,7 +81,7 @@ function createReimbursement(payload, operatorId) {
 function logOperation(data, reimbursementId, operatorId, action, remark = '') {
   const operator = USERS.find(u => u.id === operatorId);
   data.operationLogs.push({
-    id: genId('LOG'),
+    id: genId(data, 'LOG'),
     reimbursementId,
     operatorId,
     operatorName: operator ? operator.name : '未知',
@@ -141,7 +141,7 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
   logOperation(data, id, operatorId, 'request_supplement',
     `发起补件，缺失：${missing.join('、')}，截止：${r.deadline.slice(0, 10)}`);
   const reminder = {
-    id: genId('RM'),
+    id: genId(data, 'RM'),
     reimbursementId: id,
     cycle: r.supplementCycle,
     operatorId,
@@ -175,7 +175,7 @@ function remindAgain(id, operatorId) {
       `第${reminder.remindCount}次催办（同一补件周期，历史合并，首次催办时间保留）`);
   } else {
     reminder = {
-      id: genId('RM'),
+      id: genId(data, 'RM'),
       reimbursementId: id,
       cycle,
       operatorId,

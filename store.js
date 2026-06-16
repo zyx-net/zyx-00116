@@ -69,12 +69,9 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
-function genId(prefix) {
-  const data = loadData();
+function genId(data, prefix) {
   data.seq += 1;
-  const id = `${prefix}${String(data.seq).padStart(4, '0')}`;
-  saveData(data);
-  return id;
+  return `${prefix}${String(data.seq).padStart(4, '0')}`;
 }
 
 function nowISO() {
