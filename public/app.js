@@ -223,6 +223,7 @@ function renderTaskList() {
     const isSelected = selectedTaskIds.has(t.id);
     const isEditing = editingDeadlineId === t.id;
     const deadlineText = formatDeadlineDisplay(t);
+    const confirmTag = t.pendingConfirm ? '<span class="status-tag" style="background:#e6f7ff;color:#1890ff;border-color:#91d5ff;margin-left:6px">待确认</span>' : '';
 
     return `
       <div class="task-item ${currentId === t.id ? 'active' : ''} ${isSelected ? 'selected' : ''}" data-id="${t.id}">
@@ -230,6 +231,7 @@ function renderTaskList() {
           ${isFinanceRole ? `<input type="checkbox" class="task-checkbox" data-task-id="${t.id}" ${isSelected ? 'checked' : ''}>` : ''}
           <span class="task-title">${t.title}</span>
           <span class="task-id">${t.id}</span>
+          ${confirmTag}
         </div>
         <div class="task-meta">
           <span class="task-meta-item task-assignee">👤 ${t.applicantName}</span>
@@ -242,6 +244,9 @@ function renderTaskList() {
           </span>
           <span class="task-meta-item">
             📅 最近催办：${t.lastReminderAt ? formatDate(t.lastReminderAt) : '-'}
+          </span>
+          <span class="task-meta-item">
+            📎 缺失：${t.missingAttachments.length > 0 ? t.missingAttachments.join('、') : '已补齐'}
           </span>
         </div>
         ${isFinanceRole ? `
@@ -418,7 +423,7 @@ function renderDetail(d) {
   ` : '';
   const supplementSection = d.status === 'pending_supplement' || d.missingAttachments?.length > 0 ? `
     <div class="detail-card">
-      <div class="detail-card-header">📌 补件信息</div>
+      <div class="detail-card-header">📌 补件信息${d.status === 'pending_supplement' && (!d.missingAttachments || d.missingAttachments.length === 0) ? '<span class="status-tag" style="background:#e6f7ff;color:#1890ff;border-color:#91d5ff;margin-left:8px">材料已补齐，待确认</span>' : ''}</div>
       <div class="detail-card-body">
         <div class="detail-row">
           <span class="detail-label">截止时间</span>
@@ -434,6 +439,10 @@ function renderDetail(d) {
         <div class="detail-row">
           <span class="detail-label">催办次数</span>
           <span class="detail-value">${d.remindCount} 次</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">缺失材料</span>
+          <span class="detail-value">${d.missingAttachments?.length > 0 ? d.missingAttachments.join('、') : '已全部补齐'}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">版本号</span>

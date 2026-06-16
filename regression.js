@@ -140,16 +140,16 @@ function runRegression() {
       newAtt('t5', '入库单说明.pdf', '说明')
     ]), '发票');
 
-  test('【场景5】两个都补齐（发票+入库单）→ 成功，状态转待复核', () => {
+  test('【场景5】两个都补齐（发票+入库单）→ 成功，状态保持待补件，待财务确认', () => {
     const result = service.submitSupplement('BX1002', 'u1', [
       newAtt('t6', '采购发票.pdf', '发票'),
       newAtt('t7', '入库单.pdf', '入库单')
     ]);
-    assertEqual(result.status, STATUS.PENDING_REVIEW, '状态');
+    assertEqual(result.status, STATUS.PENDING_SUPPLEMENT, '状态应保持待补件');
     assertEqual(result.missingAttachments.length, 0, '缺失项应清空');
     const r = getBx('BX1002');
     assertEqual(r.attachments.length, 3, '附件数（原1个采购清单 + 2个新附件 = 3）');
-    return `status=${result.status}, 缺失项已清空，附件数=${r.attachments.length}`;
+    return `status=${result.status}, 缺失项已清空（待财务确认），附件数=${r.attachments.length}`;
   });
 
   console.log('\n' + '-'.repeat(70));

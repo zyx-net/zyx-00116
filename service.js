@@ -326,6 +326,8 @@ function listSupplementTasks(filter = {}) {
     const overdue = r.deadline && isOverdue(r.deadline);
     const remainingDays = r.deadline ? Math.ceil((new Date(r.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : null;
 
+    const pendingConfirm = (r.missingAttachments || []).length === 0;
+
     return {
       id: r.id,
       title: r.title,
@@ -334,8 +336,9 @@ function listSupplementTasks(filter = {}) {
       applicantId: r.applicantId,
       applicantName: applicant ? applicant.name : '未知',
       status: r.status,
-      statusLabel: STATUS_LABEL[r.status],
+      statusLabel: pendingConfirm ? '待确认' : STATUS_LABEL[r.status],
       missingAttachments: r.missingAttachments || [],
+      pendingConfirm,
       deadline: r.deadline,
       remainingDays,
       overdue,
@@ -349,6 +352,7 @@ function listSupplementTasks(filter = {}) {
   });
 
   tasks.sort((a, b) => {
+    if (a.pendingConfirm !== b.pendingConfirm) return a.pendingConfirm ? -1 : 1;
     if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
     if (a.deadline && b.deadline) return new Date(a.deadline) - new Date(b.deadline);
     return 0;
@@ -378,11 +382,13 @@ function submitSupplement(id, operatorId, newAttachments, expectedVersion) {
     throw new Error(`仍有指定材料未补齐：${unmatched.join('、')}。本次匹配到：${matchedNames || '无'}。请上传与要求完全匹配的附件，同名重复上传无效。`);
   }
   r.attachments = [...r.attachments, ...newAtts];
-  r.missingAttachments = [];
-  r.status = STATUS.PENDING_REVIEW;
+  const matchedNames = matched.map(m => m.missing).join('、');
+  if (unmatched.length === 0) {
+    r.missingAttachments = [];
+  }
   bumpVersion(r);
   logOperation(data, id, operatorId, 'submit_supplement',
-    `补齐全部缺失材料：${matched.map(m => m.missing).join('、')}，提交附件：${newAtts.map(a => a.name).join('、')}`);
+    `提交补件材料：${newAtts.map(a => a.name).join('、')}，匹配到：${matchedNames || '无'}${unmatched.length === 0 ? '（已全部补齐，待财务确认）' : `，仍缺：${unmatched.join('、')}`}`);
   saveData(data);
   return getReimbursement(id);
 }

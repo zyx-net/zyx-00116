@@ -54,7 +54,6 @@ async function main() {
   console.log('✅  通过：连续催办次数正确累加，记录条数保持1');
 
   console.log('\n--- 场景2：多条催办记录（多轮补件）回查详情，总次数正确 ---');
-  // 先补齐材料，完成本轮补件，进入待复核
   service.submitSupplement(r.id, 'u1', [
     { id: 'att1', name: '发票.pdf', category: '发票', size: '100KB', uploadedAt: new Date().toISOString() },
     { id: 'att2', name: '审批单.pdf', category: '审批单', size: '80KB', uploadedAt: new Date().toISOString() }
@@ -62,7 +61,10 @@ async function main() {
   detail = service.getReimbursementDetail(r.id);
   console.log(`补齐材料后: status=${detail.statusLabel}, remindCount=${detail.remindCount}, cycle=${detail.supplementCycle}`);
 
-  // 在待复核状态发起第二轮补件（新增第二条催办记录）
+  service.confirmSupplementComplete(r.id, 'u3');
+  detail = service.getReimbursementDetail(r.id);
+  console.log(`财务确认完成后: status=${detail.statusLabel}, remindCount=${detail.remindCount}, cycle=${detail.supplementCycle}`);
+
   await service.auditRequestSupplement(r.id, 'u3', ['合同'], 5);
   detail = service.getReimbursementDetail(r.id);
   console.log(`第二轮补件后: status=${detail.statusLabel}, remindCount=${detail.remindCount}, reminderCount=${detail.reminderCount}, cycle=${detail.supplementCycle}`);

@@ -1,41 +1,52 @@
 {
   "reimbursements": [
     {
-      "id": "BX2001",
-      "title": "上海出差差旅费",
+      "id": "BX1001",
+      "title": "2024年3月上海出差差旅费报销",
       "amount": 3580.5,
       "type": "差旅费",
-      "description": "",
+      "description": "上海客户现场出差3天，含机票、住宿、餐饮",
       "applicantId": "u1",
       "status": "pending_supplement",
       "attachments": [
         {
           "id": "a1",
-          "name": "机票.pdf",
+          "name": "机票行程单.pdf",
           "category": "机票",
-          "size": "100KB",
-          "uploadedAt": "2026-06-16T20:08:27.928Z"
+          "size": "245KB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
+        },
+        {
+          "id": "a2",
+          "name": "酒店发票.pdf",
+          "category": "住宿",
+          "size": "180KB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
+        },
+        {
+          "id": "a_new1",
+          "name": "出差审批单.pdf",
+          "category": "审批单",
+          "size": "150KB",
+          "uploadedAt": "2026-06-16T20:36:59.943Z"
         }
       ],
-      "missingAttachments": [
-        "发票",
-        "入库单"
-      ],
+      "missingAttachments": [],
       "rejectReason": null,
-      "deadline": "2026-07-01T20:08:27.929Z",
+      "deadline": "2026-06-19T20:36:59.929Z",
       "supplementCycle": 1,
-      "createdAt": "2026-06-16T20:08:27.928Z",
-      "updatedAt": "2026-06-16T20:08:27.935Z",
+      "createdAt": "2026-06-16T20:36:59.902Z",
+      "updatedAt": "2026-06-16T20:36:59.944Z",
       "version": 5,
       "archivedAt": null,
       "archivedBy": null
     },
     {
-      "id": "BX2002",
-      "title": "办公用品采购",
+      "id": "BX1002",
+      "title": "办公用品采购报销",
       "amount": 1260,
       "type": "办公费",
-      "description": "",
+      "description": "部门季度办公用品采购",
       "applicantId": "u1",
       "status": "pending_supplement",
       "attachments": [
@@ -43,28 +54,29 @@
           "id": "a3",
           "name": "采购清单.xlsx",
           "category": "清单",
-          "size": "100KB",
-          "uploadedAt": "2026-06-16T20:08:27.928Z"
+          "size": "32KB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
         }
       ],
       "missingAttachments": [
-        "审批单"
+        "发票",
+        "入库单"
       ],
       "rejectReason": null,
-      "deadline": "2026-06-19T20:08:27.928Z",
+      "deadline": "2026-06-15T20:36:59.902Z",
       "supplementCycle": 1,
-      "createdAt": "2026-06-16T20:08:27.928Z",
-      "updatedAt": "2026-06-16T20:08:27.936Z",
-      "version": 3,
+      "createdAt": "2026-06-16T20:36:59.902Z",
+      "updatedAt": "2026-06-16T20:36:59.902Z",
+      "version": 1,
       "archivedAt": null,
       "archivedBy": null
     },
     {
-      "id": "BX2003",
-      "title": "员工培训费",
+      "id": "BX1003",
+      "title": "员工培训费用报销",
       "amount": 2800,
       "type": "培训费",
-      "description": "",
+      "description": "参加前端技术培训",
       "applicantId": "u1",
       "status": "pending_review",
       "attachments": [
@@ -72,233 +84,332 @@
           "id": "a4",
           "name": "培训发票.pdf",
           "category": "发票",
-          "size": "100KB",
-          "uploadedAt": "2026-06-16T20:08:27.928Z"
+          "size": "200KB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
         },
         {
           "id": "a5",
           "name": "结业证书.jpg",
           "category": "证书",
-          "size": "100KB",
-          "uploadedAt": "2026-06-16T20:08:27.928Z"
+          "size": "1.2MB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
         }
       ],
       "missingAttachments": [],
       "rejectReason": null,
       "deadline": null,
       "supplementCycle": 0,
-      "createdAt": "2026-06-16T20:08:27.928Z",
-      "updatedAt": "2026-06-16T20:08:27.928Z",
+      "createdAt": "2026-06-16T20:36:59.902Z",
+      "updatedAt": "2026-06-16T20:36:59.902Z",
       "version": 1,
       "archivedAt": null,
       "archivedBy": null
     },
     {
-      "id": "BX2004",
-      "title": "招待费报销",
+      "id": "BX1004",
+      "title": "客户招待费报销",
       "amount": 890,
       "type": "招待费",
-      "description": "",
-      "applicantId": "u5",
-      "status": "pending_review",
+      "description": "招待重要客户用餐",
+      "applicantId": "u1",
+      "status": "rejected",
       "attachments": [
         {
-          "id": "restart-att",
-          "name": "发票.pdf",
+          "id": "a6",
+          "name": "餐饮发票.jpg",
           "category": "发票",
-          "size": "100KB",
-          "uploadedAt": "2026-06-16T20:08:27.932Z"
+          "size": "560KB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
+        }
+      ],
+      "missingAttachments": [],
+      "rejectReason": "缺少招待人员名单和事由说明",
+      "deadline": null,
+      "supplementCycle": 0,
+      "createdAt": "2026-06-16T20:36:59.902Z",
+      "updatedAt": "2026-06-16T20:36:59.902Z",
+      "version": 1,
+      "archivedAt": null,
+      "archivedBy": null
+    },
+    {
+      "id": "BX1005",
+      "title": "通讯补贴报销",
+      "amount": 200,
+      "type": "通讯费",
+      "description": "3月份手机话费补贴",
+      "applicantId": "u1",
+      "status": "approved",
+      "attachments": [
+        {
+          "id": "a7",
+          "name": "话费账单.pdf",
+          "category": "账单",
+          "size": "120KB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
         }
       ],
       "missingAttachments": [],
       "rejectReason": null,
-      "deadline": "2026-06-21T20:08:27.928Z",
-      "supplementCycle": 1,
-      "createdAt": "2026-06-16T20:08:27.928Z",
-      "updatedAt": "2026-06-16T20:08:27.932Z",
-      "version": 3,
+      "deadline": null,
+      "supplementCycle": 0,
+      "createdAt": "2026-06-16T20:36:59.902Z",
+      "updatedAt": "2026-06-16T20:36:59.902Z",
+      "version": 1,
       "archivedAt": null,
       "archivedBy": null
+    },
+    {
+      "id": "BX1006",
+      "title": "交通补贴报销",
+      "amount": 450,
+      "type": "交通费",
+      "description": "3月份市内交通补贴",
+      "applicantId": "u1",
+      "status": "archived",
+      "attachments": [
+        {
+          "id": "a8",
+          "name": "地铁发票.jpg",
+          "category": "发票",
+          "size": "320KB",
+          "uploadedAt": "2026-06-16T20:36:59.902Z"
+        }
+      ],
+      "missingAttachments": [],
+      "rejectReason": null,
+      "deadline": null,
+      "supplementCycle": 0,
+      "createdAt": "2026-06-16T20:36:59.902Z",
+      "updatedAt": "2026-06-16T20:36:59.902Z",
+      "version": 1,
+      "archivedAt": "2026-06-16T20:36:59.902Z",
+      "archivedBy": "u4"
     }
   ],
   "reminders": [
     {
-      "id": "RM2001",
-      "reimbursementId": "BX2001",
+      "id": "RM0001",
+      "reimbursementId": "BX1002",
       "cycle": 1,
       "operatorId": "u2",
       "operatorName": "李四",
-      "message": "请补充：发票、入库单",
-      "deadline": "2026-07-01T20:08:27.929Z",
-      "remindedAt": "2026-06-14T20:08:27.928Z",
-      "lastRemindedAt": "2026-06-16T20:08:27.935Z",
-      "remindCount": 3,
-      "lastRemindedBy": "王五",
-      "assigneeId": "u1",
-      "assigneeName": "张三"
-    },
-    {
-      "id": "RM2002",
-      "reimbursementId": "BX2002",
-      "cycle": 1,
-      "operatorId": "u3",
-      "operatorName": "王五",
-      "message": "请补充：审批单",
-      "deadline": "2026-06-19T20:08:27.928Z",
-      "remindedAt": "2026-06-15T20:08:27.928Z",
-      "lastRemindedAt": "2026-06-16T20:08:27.936Z",
+      "message": "请补充以下附件：发票、入库单",
+      "deadline": "2026-06-15T20:36:59.902Z",
+      "remindedAt": "2026-06-16T20:36:59.902Z",
+      "lastRemindedAt": "2026-06-16T20:36:59.902Z",
       "remindCount": 2,
-      "lastRemindedBy": "王五",
-      "assigneeId": "u1",
-      "assigneeName": "张三"
+      "lastRemindedBy": "李四",
+      "assigneeId": null,
+      "assigneeName": null
     },
     {
-      "id": "RM2003",
-      "reimbursementId": "BX2004",
+      "id": "RM1012",
+      "reimbursementId": "BX1001",
       "cycle": 1,
       "operatorId": "u2",
       "operatorName": "李四",
-      "message": "请补充：发票",
-      "deadline": "2026-06-21T20:08:27.928Z",
-      "remindedAt": "2026-06-13T20:08:27.928Z",
-      "lastRemindedAt": "2026-06-14T20:08:27.928Z",
+      "message": "请补充以下附件：出差审批单",
+      "deadline": "2026-06-19T20:36:59.929Z",
+      "remindedAt": "2026-06-16T20:36:59.929Z",
+      "lastRemindedAt": "2026-06-16T20:36:59.937Z",
       "remindCount": 3,
       "lastRemindedBy": "李四",
-      "assigneeId": "u5",
-      "assigneeName": "未知"
+      "assigneeId": "u1",
+      "assigneeName": "张三"
     }
   ],
   "operationLogs": [
     {
-      "id": "LOG2001",
-      "reimbursementId": "BX2001",
+      "id": "LOG001",
+      "reimbursementId": "BX1001",
       "operatorId": "u1",
       "operatorName": "张三",
       "operatorRole": "applicant",
       "action": "create",
       "remark": "创建报销单",
-      "operatedAt": "2026-06-11T20:08:27.928Z"
+      "operatedAt": "2026-06-16T20:36:59.902Z"
     },
     {
-      "id": "LOG2002",
-      "reimbursementId": "BX2001",
-      "operatorId": "u2",
-      "operatorName": "李四",
-      "operatorRole": "auditor",
-      "action": "request_supplement",
-      "remark": "发起补件",
-      "operatedAt": "2026-06-14T20:08:27.928Z"
-    },
-    {
-      "id": "LOG2003",
-      "reimbursementId": "BX2001",
-      "operatorId": "u2",
-      "operatorName": "李四",
-      "operatorRole": "auditor",
-      "action": "remind_again",
-      "remark": "第2次催办",
-      "operatedAt": "2026-06-15T20:08:27.928Z"
-    },
-    {
-      "id": "LOG2004",
-      "reimbursementId": "BX2002",
+      "id": "LOG002",
+      "reimbursementId": "BX1002",
       "operatorId": "u1",
       "operatorName": "张三",
       "operatorRole": "applicant",
       "action": "create",
-      "remark": "创建",
-      "operatedAt": "2026-06-13T20:08:27.928Z"
+      "remark": "创建报销单",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
     },
     {
-      "id": "LOG2005",
-      "reimbursementId": "BX2002",
-      "operatorId": "u3",
-      "operatorName": "王五",
-      "operatorRole": "finance",
+      "id": "LOG003",
+      "reimbursementId": "BX1002",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
       "action": "request_supplement",
-      "remark": "发起补件",
-      "operatedAt": "2026-06-15T20:08:27.928Z"
+      "remark": "发起补件，缺失：发票、入库单",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
     },
     {
-      "id": "LOG2006",
-      "reimbursementId": "BX2004",
-      "operatorId": "u5",
-      "operatorName": "未知",
+      "id": "LOG004",
+      "reimbursementId": "BX1002",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "remind_again",
+      "remark": "第2次催办（同一补件周期，历史合并）",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG005",
+      "reimbursementId": "BX1003",
+      "operatorId": "u1",
+      "operatorName": "张三",
       "operatorRole": "applicant",
       "action": "create",
-      "remark": "创建",
-      "operatedAt": "2026-06-09T20:08:27.928Z"
+      "remark": "创建报销单",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
     },
     {
-      "id": "LOG2007",
-      "reimbursementId": "BX2004",
+      "id": "LOG006",
+      "reimbursementId": "BX1003",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "approve_audit",
+      "remark": "初审通过，进入财务复核",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG007",
+      "reimbursementId": "BX1004",
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "operatorRole": "applicant",
+      "action": "create",
+      "remark": "创建报销单",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG008",
+      "reimbursementId": "BX1004",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "reject",
+      "remark": "驳回，原因：缺少招待人员名单和事由说明",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG009",
+      "reimbursementId": "BX1005",
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "operatorRole": "applicant",
+      "action": "create",
+      "remark": "创建报销单",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG010",
+      "reimbursementId": "BX1005",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "approve_audit",
+      "remark": "初审通过，进入财务复核",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG011",
+      "reimbursementId": "BX1005",
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "operatorRole": "finance",
+      "action": "approve_finance",
+      "remark": "财务复核通过",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG012",
+      "reimbursementId": "BX1006",
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "operatorRole": "applicant",
+      "action": "create",
+      "remark": "创建报销单",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG013",
+      "reimbursementId": "BX1006",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "approve_audit",
+      "remark": "初审通过，进入财务复核",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG014",
+      "reimbursementId": "BX1006",
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "operatorRole": "finance",
+      "action": "approve_finance",
+      "remark": "财务复核通过",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG015",
+      "reimbursementId": "BX1006",
+      "operatorId": "u4",
+      "operatorName": "赵六",
+      "operatorRole": "archiver",
+      "action": "archive",
+      "remark": "已归档",
+      "operatedAt": "2026-06-16T20:36:59.902Z"
+    },
+    {
+      "id": "LOG1011",
+      "reimbursementId": "BX1001",
       "operatorId": "u2",
       "operatorName": "李四",
       "operatorRole": "auditor",
       "action": "request_supplement",
-      "remark": "发起补件",
-      "operatedAt": "2026-06-13T20:08:27.928Z"
+      "remark": "发起补件，缺失：出差审批单，截止：2026-06-19",
+      "operatedAt": "2026-06-16T20:36:59.929Z"
     },
     {
-      "id": "LOG2008",
-      "reimbursementId": "BX2004",
+      "id": "LOG1013",
+      "reimbursementId": "BX1001",
       "operatorId": "u2",
       "operatorName": "李四",
       "operatorRole": "auditor",
-      "action": "remind_again",
-      "remark": "第2次催办",
-      "operatedAt": "2026-06-13T20:08:27.928Z"
-    },
-    {
-      "id": "LOG2009",
-      "reimbursementId": "BX2004",
-      "operatorId": "u2",
-      "operatorName": "李四",
-      "operatorRole": "auditor",
-      "action": "remind_again",
-      "remark": "第3次催办",
-      "operatedAt": "2026-06-14T20:08:27.928Z"
-    },
-    {
-      "id": "LOG2011",
-      "reimbursementId": "BX2001",
-      "operatorId": "u3",
-      "operatorName": "王五",
-      "operatorRole": "finance",
-      "action": "update_deadline",
-      "remark": "修改截止时间：2026-06-15 → 2026-07-01",
-      "operatedAt": "2026-06-16T20:08:27.929Z"
-    },
-    {
-      "id": "LOG2012",
-      "reimbursementId": "BX2004",
-      "operatorId": "u2",
-      "operatorName": "李四",
-      "operatorRole": "auditor",
-      "action": "confirm_supplement_complete",
-      "remark": "财务确认补件完成，进入待复核状态",
-      "operatedAt": "2026-06-16T20:08:27.932Z"
-    },
-    {
-      "id": "LOG2013",
-      "reimbursementId": "BX2001",
-      "operatorId": "u3",
-      "operatorName": "王五",
-      "operatorRole": "finance",
-      "action": "remind_again",
-      "remark": "第3次催办（同一补件周期，历史合并，首次催办时间保留）",
-      "operatedAt": "2026-06-16T20:08:27.935Z"
-    },
-    {
-      "id": "LOG2014",
-      "reimbursementId": "BX2002",
-      "operatorId": "u3",
-      "operatorName": "王五",
-      "operatorRole": "finance",
       "action": "remind_again",
       "remark": "第2次催办（同一补件周期，历史合并，首次催办时间保留）",
-      "operatedAt": "2026-06-16T20:08:27.936Z"
+      "operatedAt": "2026-06-16T20:36:59.935Z"
+    },
+    {
+      "id": "LOG1014",
+      "reimbursementId": "BX1001",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "remind_again",
+      "remark": "第3次催办（同一补件周期，历史合并，首次催办时间保留）",
+      "operatedAt": "2026-06-16T20:36:59.937Z"
+    },
+    {
+      "id": "LOG1015",
+      "reimbursementId": "BX1001",
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "operatorRole": "applicant",
+      "action": "submit_supplement",
+      "remark": "提交补件材料：出差审批单.pdf，匹配到：出差审批单（已全部补齐，待财务确认）",
+      "operatedAt": "2026-06-16T20:36:59.944Z"
     }
   ],
-  "seq": 2014
+  "seq": 1015
 }
