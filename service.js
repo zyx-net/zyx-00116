@@ -1,6 +1,81 @@
 const store = require('./store');
 
-const { STATUS, STATUS_LABEL, USERS, loadData, saveData, genId, nowISO, addDays, isOverdue, matchAttachmentToMissing } = store;
+const { STATUS, STATUS_LABEL, USERS, loadData, saveData, genId, nowISO, addDays, isOverdue, matchAttachmentToMissing, normalizeSupplementRound } = store;
+
+function buildSupplementRounds(r, data) {
+  if (r.supplementRounds && r.supplementRounds.length > 0) {
+    return r.supplementRounds
+      .map(normalizeSupplementRound)
+      .filter(Boolean)
+      .sort((a, b) => a.cycle - b.cycle);
+  }
+  const rounds = [];
+  const reminders = (data.reminders || []).filter(rm => rm.reimbursementId === r.id);
+  const logs = (data.operationLogs || []).filter(l => l.reimbursementId === r.id);
+  const cycleSet = new Set();
+  for (const rm of reminders) {
+    if (rm.cycle) cycleSet.add(rm.cycle);
+  }
+  for (const log of logs) {
+    if (log.action === 'request_supplement') {
+      const match = log.remark && log.remark.match(/发起补件/);
+      if (match) {
+        for (let i = 1; i <= (r.supplementCycle || 0); i++) cycleSet.add(i);
+      }
+    }
+  }
+  for (const cycle of cycleSet) {
+    const round = normalizeSupplementRound({ cycle, status: 'requested' });
+    const rm = reminders.find(x => x.cycle === cycle);
+    if (rm) {
+      round.requestedAt = rm.remindedAt;
+      round.requestedBy = rm.operatorId;
+      round.requestedByName = rm.operatorName;
+      round.deadline = rm.deadline;
+      const msg = rm.message || '';
+      const missingMatch = msg.match(/请补充以下附件[：:]\s*(.+)/);
+      if (missingMatch) {
+        round.missingAttachments = missingMatch[1].split(/[、,，]/).map(s => s.trim()).filter(Boolean);
+      }
+    }
+    const reqLog = logs.find(l => l.action === 'request_supplement');
+    if (reqLog) {
+      round.requestedAt = round.requestedAt || reqLog.operatedAt;
+      round.requestedBy = round.requestedBy || reqLog.operatorId;
+      round.requestedByName = round.requestedByName || reqLog.operatorName;
+      const remark = reqLog.remark || '';
+      const missingMatch = remark.match(/缺失[：:]\s*(.+?)[，,]/) || remark.match(/缺失[：:]\s*(.+)/);
+      if (missingMatch) {
+        round.missingAttachments = missingMatch[1].split(/[、,，]/).map(s => s.trim()).filter(Boolean);
+      }
+      const deadlineMatch = remark.match(/截止[：:]\s*(\S+)/);
+      if (deadlineMatch) round.deadline = round.deadline || deadlineMatch[1];
+    }
+    const submitLogs = logs.filter(l => l.action === 'submit_supplement');
+    if (submitLogs.length > 0) {
+      const submitLog = submitLogs[0];
+      round.submittedAt = submitLog.operatedAt;
+      round.submittedBy = submitLog.operatorId;
+      round.submittedByName = submitLog.operatorName;
+      const attMatch = (submitLog.remark || '').match(/提交补件材料[：:]\s*(.+?)[，,]/);
+      if (attMatch) {
+        round.submittedAttachments = attMatch[1].split(/[、,，]/).map(name => ({ name: name.trim() }));
+      }
+      round.status = 'submitted';
+    }
+    const confirmLog = logs.find(l => l.action === 'confirm_supplement_complete');
+    if (confirmLog) {
+      round.confirmedAt = confirmLog.operatedAt;
+      round.confirmedBy = confirmLog.operatorId;
+      round.confirmedByName = confirmLog.operatorName;
+      round.confirmResult = 'passed';
+      round.confirmRemark = confirmLog.remark || '';
+      round.status = 'confirmed_passed';
+    }
+    rounds.push(round);
+  }
+  return rounds.sort((a, b) => a.cycle - b.cycle);
+}
 
 function listReimbursements(filter = {}) {
   const data = loadData();
@@ -23,6 +98,7 @@ function decorateReimbursement(r) {
   const overdue = r.status === STATUS.PENDING_SUPPLEMENT && r.deadline && isOverdue(r.deadline);
   const pendingConfirm = r.status === STATUS.PENDING_SUPPLEMENT
     && (r.missingAttachments || []).length === 0;
+  const supplementRounds = buildSupplementRounds(r, data);
   return {
     ...r,
     statusLabel: pendingConfirm ? '待确认' : STATUS_LABEL[r.status],
@@ -32,7 +108,8 @@ function decorateReimbursement(r) {
     lastReminderAt: reminders.length > 0 ? reminders[reminders.length - 1].remindedAt : null,
     lastSupplementAt: r.lastSupplementAt || null,
     pendingConfirm,
-    overdue
+    overdue,
+    supplementRounds
   };
 }
 
@@ -90,6 +167,7 @@ function createReimbursement(payload, operatorId) {
     deadline: null,
     supplementCycle: 0,
     lastSupplementAt: null,
+    supplementRounds: [],
     createdAt: now,
     updatedAt: now,
     version: 1
@@ -134,11 +212,34 @@ function auditReject(id, operatorId, reason, expectedVersion) {
   if (!r) throw new Error('报销单不存在');
   checkVersion(r, expectedVersion);
   assertRole(operatorId, ['auditor', 'finance']);
-  assertStatus(r, [STATUS.PENDING_AUDIT, STATUS.PENDING_REVIEW]);
+  assertStatus(r, [STATUS.PENDING_AUDIT, STATUS.PENDING_REVIEW, STATUS.PENDING_SUPPLEMENT]);
+  const versionBeforeBump = r.version || 1;
+  const currentCycle = r.supplementCycle || 0;
+  const op = USERS.find(u => u.id === operatorId);
+  const rejectTime = nowISO();
+
   r.status = STATUS.REJECTED;
   r.rejectReason = reason;
   bumpVersion(r);
-  logOperation(data, id, operatorId, 'reject', `驳回，原因：${reason}`);
+
+  if (currentCycle > 0) {
+    const rounds = buildSupplementRounds(r, data);
+    const currentRound = rounds.find(rd => rd.cycle === currentCycle);
+    if (currentRound) {
+      currentRound.rejectedAt = rejectTime;
+      currentRound.rejectedBy = operatorId;
+      currentRound.rejectedByName = op ? op.name : '未知';
+      currentRound.rejectReason = reason;
+      currentRound.versionAtConfirm = currentRound.versionAtConfirm || versionBeforeBump;
+      currentRound.status = 'confirmed_rejected';
+      currentRound.confirmResult = currentRound.confirmResult || 'rejected';
+      currentRound.confirmRemark = currentRound.confirmRemark || `驳回，原因：${reason}`;
+      r.supplementRounds = rounds;
+    }
+  }
+
+  logOperation(data, id, operatorId, 'reject',
+    `${currentCycle > 0 ? `[第${currentCycle}轮] ` : ''}驳回，原因：${reason}，版本：v${versionBeforeBump}→v${r.version}`);
   saveData(data);
   return getReimbursement(id);
 }
@@ -159,11 +260,26 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
   r.supplementCycle = (r.supplementCycle || 0) + 1;
   const now = nowISO();
   r.deadline = addDays(now, deadlineDays);
+  const versionBeforeBump = r.version || 1;
   bumpVersion(r);
   const op = USERS.find(u => u.id === operatorId);
   const applicant = USERS.find(u => u.id === r.applicantId);
+
+  const existingRounds = buildSupplementRounds(r, data);
+  const newRound = normalizeSupplementRound({
+    cycle: r.supplementCycle,
+    requestedAt: now,
+    requestedBy: operatorId,
+    requestedByName: op ? op.name : '未知',
+    missingAttachments: missing,
+    deadline: r.deadline,
+    versionAtRequest: versionBeforeBump,
+    status: 'requested'
+  });
+  r.supplementRounds = [...existingRounds, newRound];
+
   logOperation(data, id, operatorId, 'request_supplement',
-    `发起补件，缺失：${missing.join('、')}，截止：${r.deadline.slice(0, 10)}`);
+    `[第${r.supplementCycle}轮] 发起补件，缺失：${missing.join('、')}，截止：${r.deadline.slice(0, 10)}，版本：v${versionBeforeBump}→v${r.version}`);
   const reminder = {
     id: genId(data, 'RM'),
     reimbursementId: id,
@@ -312,12 +428,30 @@ function confirmSupplementComplete(id, operatorId, expectedVersion) {
     );
   }
 
+  const versionBeforeBump = r.version || 1;
+  const currentCycle = r.supplementCycle;
+  const op = USERS.find(u => u.id === operatorId);
+  const confirmTime = nowISO();
+
   r.missingAttachments = [];
   r.status = STATUS.PENDING_REVIEW;
   bumpVersion(r);
 
+  const rounds = buildSupplementRounds(r, data);
+  const currentRound = rounds.find(rd => rd.cycle === currentCycle);
+  if (currentRound) {
+    currentRound.confirmedAt = confirmTime;
+    currentRound.confirmedBy = operatorId;
+    currentRound.confirmedByName = op ? op.name : '未知';
+    currentRound.confirmResult = 'passed';
+    currentRound.confirmRemark = '财务确认补件完成，进入待复核状态';
+    currentRound.versionAtConfirm = versionBeforeBump;
+    currentRound.status = 'confirmed_passed';
+    r.supplementRounds = rounds;
+  }
+
   logOperation(data, id, operatorId, 'confirm_supplement_complete',
-    '财务确认补件完成，进入待复核状态');
+    `[第${currentCycle}轮] 财务确认补件完成，进入待复核状态，版本：v${versionBeforeBump}→v${r.version}`);
 
   saveData(data);
   return getReimbursement(id);
@@ -399,15 +533,33 @@ function submitSupplement(id, operatorId, newAttachments, expectedVersion) {
     const matchedNames = matched.map(m => `${m.missing} ← ${m.attachment.name}`).join('、');
     throw new Error(`仍有指定材料未补齐：${unmatched.join('、')}。本次匹配到：${matchedNames || '无'}。请上传与要求完全匹配的附件，同名重复上传无效。`);
   }
+  const versionBeforeBump = r.version || 1;
+  const currentCycle = r.supplementCycle;
+  const op = USERS.find(u => u.id === operatorId);
+  const submitTime = nowISO();
+
   r.attachments = [...r.attachments, ...newAtts];
   const matchedNames = matched.map(m => m.missing).join('、');
   if (unmatched.length === 0) {
     r.missingAttachments = [];
   }
-  r.lastSupplementAt = nowISO();
+  r.lastSupplementAt = submitTime;
   bumpVersion(r);
+
+  const rounds = buildSupplementRounds(r, data);
+  const currentRound = rounds.find(rd => rd.cycle === currentCycle);
+  if (currentRound) {
+    currentRound.submittedAt = submitTime;
+    currentRound.submittedBy = operatorId;
+    currentRound.submittedByName = op ? op.name : '未知';
+    currentRound.submittedAttachments = [...newAtts];
+    currentRound.versionAtSubmit = versionBeforeBump;
+    currentRound.status = unmatched.length === 0 ? 'submitted' : 'requested';
+    r.supplementRounds = rounds;
+  }
+
   logOperation(data, id, operatorId, 'submit_supplement',
-    `提交补件材料：${newAtts.map(a => a.name).join('、')}，匹配到：${matchedNames || '无'}${unmatched.length === 0 ? '（已全部补齐，待财务确认）' : `，仍缺：${unmatched.join('、')}`}`);
+    `[第${currentCycle}轮] 提交补件材料：${newAtts.map(a => a.name).join('、')}，匹配到：${matchedNames || '无'}${unmatched.length === 0 ? '（已全部补齐，待财务确认）' : `，仍缺：${unmatched.join('、')}`}，版本：v${versionBeforeBump}→v${r.version}`);
   saveData(data);
   return getReimbursement(id);
 }
@@ -474,48 +626,52 @@ function exportArchive(id) {
     .sort((a, b) => new Date(a.operatedAt) - new Date(b.operatedAt));
   const applicant = USERS.find(u => u.id === r.applicantId);
   const decorate = decorateReimbursement(r);
+  const supplementRounds = buildSupplementRounds(r, data);
 
   const supplementLogs = logs.filter(l =>
     l.action === 'request_supplement' ||
     l.action === 'submit_supplement' ||
     l.action === 'confirm_supplement_complete' ||
-    l.action === 'remind_again'
+    l.action === 'remind_again' ||
+    l.action === 'reject'
   );
-  const supplementCycles = [];
-  const cycleMap = {};
-  for (const rm of reminders) {
-    if (!cycleMap[rm.cycle]) {
-      cycleMap[rm.cycle] = {
-        cycle: rm.cycle,
-        requestedAt: rm.remindedAt,
-        requestedBy: rm.operatorName,
-        deadline: rm.deadline,
-        message: rm.message,
-        remindCount: rm.remindCount,
+
+  const exportRounds = supplementRounds.map(round => {
+    const roundReminders = reminders.filter(rm => rm.cycle === round.cycle);
+    return {
+      cycle: round.cycle,
+      status: round.status,
+      requestedAt: round.requestedAt,
+      requestedBy: round.requestedBy,
+      requestedByName: round.requestedByName,
+      missingAttachments: round.missingAttachments,
+      deadline: round.deadline,
+      submittedAt: round.submittedAt,
+      submittedBy: round.submittedBy,
+      submittedByName: round.submittedByName,
+      submittedAttachments: round.submittedAttachments,
+      versionAtSubmit: round.versionAtSubmit,
+      confirmedAt: round.confirmedAt,
+      confirmedBy: round.confirmedBy,
+      confirmedByName: round.confirmedByName,
+      confirmResult: round.confirmResult,
+      confirmRemark: round.confirmRemark,
+      rejectedAt: round.rejectedAt,
+      rejectedBy: round.rejectedBy,
+      rejectedByName: round.rejectedByName,
+      rejectReason: round.rejectReason,
+      versionAtConfirm: round.versionAtConfirm,
+      reminders: roundReminders.map(rm => ({
+        remindedAt: rm.remindedAt,
         lastRemindedAt: rm.lastRemindedAt,
+        remindCount: rm.remindCount,
         lastRemindedBy: rm.lastRemindedBy,
-        submitAt: null,
-        confirmedAt: null,
-        confirmedBy: null
-      };
-      supplementCycles.push(cycleMap[rm.cycle]);
-    }
-  }
-  for (const log of logs) {
-    if (log.action === 'submit_supplement') {
-      const cycle = r.supplementCycle;
-      if (cycleMap[cycle]) {
-        cycleMap[cycle].submitAt = log.operatedAt;
-      }
-    }
-    if (log.action === 'confirm_supplement_complete') {
-      const cycle = r.supplementCycle;
-      if (cycleMap[cycle]) {
-        cycleMap[cycle].confirmedAt = log.operatedAt;
-        cycleMap[cycle].confirmedBy = log.operatorName;
-      }
-    }
-  }
+        operatorName: rm.operatorName,
+        message: rm.message
+      })),
+      totalRemindCount: roundReminders.reduce((s, rm) => s + (rm.remindCount || 0), 0)
+    };
+  });
 
   return {
     reimbursement: {
@@ -528,15 +684,16 @@ function exportArchive(id) {
       lastSupplementAt: r.lastSupplementAt || null,
       supplementCycle: r.supplementCycle || 0,
       missingAttachments: r.missingAttachments || [],
-      pendingConfirm: decorate.pendingConfirm || false
+      pendingConfirm: decorate.pendingConfirm || false,
+      supplementRounds: exportRounds
     },
     reminders,
     operationLogs: logs,
     supplementSummary: {
-      totalCycles: r.supplementCycle || 0,
+      totalCycles: supplementRounds.length,
       totalRemindCount: decorate.remindCount,
       supplementLogsCount: supplementLogs.length,
-      cycles: supplementCycles
+      cycles: exportRounds
     }
   };
 }

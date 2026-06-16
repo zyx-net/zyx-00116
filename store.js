@@ -49,6 +49,35 @@ function ensureDataDir() {
   }
 }
 
+function normalizeSupplementRound(round) {
+  if (!round) return null;
+  const now = nowISO();
+  return {
+    cycle: round.cycle || 1,
+    requestedAt: round.requestedAt || now,
+    requestedBy: round.requestedBy || '',
+    requestedByName: round.requestedByName || '未知',
+    missingAttachments: round.missingAttachments || [],
+    deadline: round.deadline || null,
+    submittedAt: round.submittedAt || null,
+    submittedBy: round.submittedBy || null,
+    submittedByName: round.submittedByName || null,
+    submittedAttachments: round.submittedAttachments || [],
+    versionAtSubmit: round.versionAtSubmit || null,
+    confirmedAt: round.confirmedAt || null,
+    confirmedBy: round.confirmedBy || null,
+    confirmedByName: round.confirmedByName || null,
+    confirmResult: round.confirmResult || null,
+    confirmRemark: round.confirmRemark || '',
+    rejectedAt: round.rejectedAt || null,
+    rejectedBy: round.rejectedBy || null,
+    rejectedByName: round.rejectedByName || null,
+    rejectReason: round.rejectReason || null,
+    versionAtConfirm: round.versionAtConfirm || null,
+    status: round.status || 'requested'
+  };
+}
+
 function normalizeReimbursement(r) {
   const now = nowISO();
   return {
@@ -65,6 +94,9 @@ function normalizeReimbursement(r) {
     deadline: r.deadline || null,
     supplementCycle: r.supplementCycle || 0,
     lastSupplementAt: r.lastSupplementAt || null,
+    supplementRounds: Array.isArray(r.supplementRounds)
+      ? r.supplementRounds.map(normalizeSupplementRound).filter(Boolean)
+      : [],
     createdAt: r.createdAt || now,
     updatedAt: r.updatedAt || now,
     version: r.version || 1,
@@ -187,5 +219,6 @@ module.exports = {
   loadData, saveData, genId, nowISO, addDays, isOverdue,
   matchAttachmentToMissing,
   normalizeData, normalizeReimbursement, normalizeReminder, normalizeOperationLog,
+  normalizeSupplementRound,
   DATA_DIR, DATA_FILE
 };

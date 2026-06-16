@@ -51,6 +51,32 @@ function seed() {
     deadline: addDays(now, -1),
     supplementCycle: 1,
     lastSupplementAt: null,
+    supplementRounds: [
+      {
+        cycle: 1,
+        requestedAt: addDays(now, -2),
+        requestedBy: auditorId,
+        requestedByName: '李四',
+        missingAttachments: ['发票', '入库单'],
+        deadline: addDays(now, -1),
+        submittedAt: null,
+        submittedBy: null,
+        submittedByName: null,
+        submittedAttachments: [],
+        versionAtSubmit: null,
+        confirmedAt: null,
+        confirmedBy: null,
+        confirmedByName: null,
+        confirmResult: null,
+        confirmRemark: '',
+        rejectedAt: null,
+        rejectedBy: null,
+        rejectedByName: null,
+        rejectReason: null,
+        versionAtConfirm: null,
+        status: 'requested'
+      }
+    ],
     createdAt: now,
     updatedAt: now,
     version: 3
@@ -129,13 +155,69 @@ function seed() {
     applicantId,
     status: STATUS.ARCHIVED,
     attachments: [
-      { id: 'a8', name: '地铁发票.jpg', category: '发票', size: '320KB', uploadedAt: now }
+      { id: 'a8', name: '地铁发票.jpg', category: '发票', size: '320KB', uploadedAt: now },
+      { id: 'a9', name: '出租车发票.pdf', category: '发票', size: '180KB', uploadedAt: addDays(now, -5) },
+      { id: 'a10', name: '公交充值凭证.png', category: '凭证', size: '250KB', uploadedAt: addDays(now, -3) }
     ],
     missingAttachments: [],
     rejectReason: null,
     deadline: null,
-    supplementCycle: 0,
-    lastSupplementAt: null,
+    supplementCycle: 2,
+    lastSupplementAt: addDays(now, -3),
+    supplementRounds: [
+      {
+        cycle: 1,
+        requestedAt: addDays(now, -10),
+        requestedBy: auditorId,
+        requestedByName: '李四',
+        missingAttachments: ['出租车发票'],
+        deadline: addDays(now, -7),
+        submittedAt: addDays(now, -8),
+        submittedBy: applicantId,
+        submittedByName: '张三',
+        submittedAttachments: [
+          { id: 'a9', name: '出租车发票.pdf', category: '发票', size: '180KB', uploadedAt: addDays(now, -5) }
+        ],
+        versionAtSubmit: 2,
+        confirmedAt: addDays(now, -7),
+        confirmedBy: financeId,
+        confirmedByName: '王五',
+        confirmResult: 'passed',
+        confirmRemark: '财务确认补件完成，进入待复核状态',
+        rejectedAt: null,
+        rejectedBy: null,
+        rejectedByName: null,
+        rejectReason: null,
+        versionAtConfirm: 2,
+        status: 'confirmed_passed'
+      },
+      {
+        cycle: 2,
+        requestedAt: addDays(now, -6),
+        requestedBy: financeId,
+        requestedByName: '王五',
+        missingAttachments: ['公交充值凭证'],
+        deadline: addDays(now, -3),
+        submittedAt: addDays(now, -4),
+        submittedBy: applicantId,
+        submittedByName: '张三',
+        submittedAttachments: [
+          { id: 'a10', name: '公交充值凭证.png', category: '凭证', size: '250KB', uploadedAt: addDays(now, -3) }
+        ],
+        versionAtSubmit: 3,
+        confirmedAt: addDays(now, -3),
+        confirmedBy: financeId,
+        confirmedByName: '王五',
+        confirmResult: 'passed',
+        confirmRemark: '财务确认补件完成，进入待复核状态',
+        rejectedAt: null,
+        rejectedBy: null,
+        rejectedByName: null,
+        rejectReason: null,
+        versionAtConfirm: 3,
+        status: 'confirmed_passed'
+      }
+    ],
     archivedAt: now,
     archivedBy: 'u4',
     createdAt: now,
@@ -161,12 +243,42 @@ function seed() {
     assigneeId: applicantId,
     assigneeName: '张三'
   };
-  data.reminders = [reminder];
+  const reminder2 = {
+    id: 'RM0002',
+    reimbursementId: 'BX1006',
+    cycle: 1,
+    operatorId: auditorId,
+    operatorName: '李四',
+    message: '请补充以下附件：出租车发票',
+    deadline: addDays(now, -7),
+    remindedAt: addDays(now, -10),
+    lastRemindedAt: addDays(now, -9),
+    remindCount: 2,
+    lastRemindedBy: '李四',
+    assigneeId: applicantId,
+    assigneeName: '张三'
+  };
+  const reminder3 = {
+    id: 'RM0003',
+    reimbursementId: 'BX1006',
+    cycle: 2,
+    operatorId: financeId,
+    operatorName: '王五',
+    message: '请补充以下附件：公交充值凭证',
+    deadline: addDays(now, -3),
+    remindedAt: addDays(now, -6),
+    lastRemindedAt: addDays(now, -5),
+    remindCount: 1,
+    lastRemindedBy: '王五',
+    assigneeId: applicantId,
+    assigneeName: '张三'
+  };
+  data.reminders = [reminder, reminder2, reminder3];
 
   const logs = [
     { id: 'LOG001', reimbursementId: 'BX1001', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'create', remark: '创建报销单', operatedAt: now },
     { id: 'LOG002', reimbursementId: 'BX1002', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'create', remark: '创建报销单', operatedAt: now },
-    { id: 'LOG003', reimbursementId: 'BX1002', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'request_supplement', remark: '发起补件，缺失：发票、入库单', operatedAt: now },
+    { id: 'LOG003', reimbursementId: 'BX1002', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'request_supplement', remark: '[第1轮] 发起补件，缺失：发票、入库单，截止：' + addDays(now, -1).slice(0, 10) + '，版本：v2→v3', operatedAt: now },
     { id: 'LOG004', reimbursementId: 'BX1002', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'remind_again', remark: '第2次催办（同一补件周期，历史合并）', operatedAt: now },
     { id: 'LOG005', reimbursementId: 'BX1003', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'create', remark: '创建报销单', operatedAt: now },
     { id: 'LOG006', reimbursementId: 'BX1003', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'approve_audit', remark: '初审通过，进入财务复核', operatedAt: now },
@@ -175,10 +287,16 @@ function seed() {
     { id: 'LOG009', reimbursementId: 'BX1005', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'create', remark: '创建报销单', operatedAt: now },
     { id: 'LOG010', reimbursementId: 'BX1005', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'approve_audit', remark: '初审通过，进入财务复核', operatedAt: now },
     { id: 'LOG011', reimbursementId: 'BX1005', operatorId: 'u3', operatorName: '王五', operatorRole: 'finance', action: 'approve_finance', remark: '财务复核通过', operatedAt: now },
-    { id: 'LOG012', reimbursementId: 'BX1006', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'create', remark: '创建报销单', operatedAt: now },
-    { id: 'LOG013', reimbursementId: 'BX1006', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'approve_audit', remark: '初审通过，进入财务复核', operatedAt: now },
-    { id: 'LOG014', reimbursementId: 'BX1006', operatorId: 'u3', operatorName: '王五', operatorRole: 'finance', action: 'approve_finance', remark: '财务复核通过', operatedAt: now },
-    { id: 'LOG015', reimbursementId: 'BX1006', operatorId: 'u4', operatorName: '赵六', operatorRole: 'archiver', action: 'archive', remark: '已归档', operatedAt: now }
+    { id: 'LOG012', reimbursementId: 'BX1006', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'create', remark: '创建报销单', operatedAt: addDays(now, -15) },
+    { id: 'LOG013', reimbursementId: 'BX1006', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'request_supplement', remark: '[第1轮] 发起补件，缺失：出租车发票，截止：' + addDays(now, -7).slice(0, 10) + '，版本：v1→v2', operatedAt: addDays(now, -10) },
+    { id: 'LOG014', reimbursementId: 'BX1006', operatorId: 'u2', operatorName: '李四', operatorRole: 'auditor', action: 'remind_again', remark: '第2次催办（第1轮补件周期，历史合并）', operatedAt: addDays(now, -9) },
+    { id: 'LOG015', reimbursementId: 'BX1006', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'submit_supplement', remark: '[第1轮] 提交补件材料：出租车发票.pdf，匹配到：出租车发票（已全部补齐，待财务确认），版本：v2→v3', operatedAt: addDays(now, -8) },
+    { id: 'LOG016', reimbursementId: 'BX1006', operatorId: 'u3', operatorName: '王五', operatorRole: 'finance', action: 'confirm_supplement_complete', remark: '[第1轮] 财务确认补件完成，进入待复核状态，版本：v3→v4', operatedAt: addDays(now, -7) },
+    { id: 'LOG017', reimbursementId: 'BX1006', operatorId: 'u3', operatorName: '王五', operatorRole: 'finance', action: 'request_supplement', remark: '[第2轮] 发起补件，缺失：公交充值凭证，截止：' + addDays(now, -3).slice(0, 10) + '，版本：v4→v5', operatedAt: addDays(now, -6) },
+    { id: 'LOG018', reimbursementId: 'BX1006', operatorId: 'u1', operatorName: '张三', operatorRole: 'applicant', action: 'submit_supplement', remark: '[第2轮] 提交补件材料：公交充值凭证.png，匹配到：公交充值凭证（已全部补齐，待财务确认），版本：v5→v6', operatedAt: addDays(now, -4) },
+    { id: 'LOG019', reimbursementId: 'BX1006', operatorId: 'u3', operatorName: '王五', operatorRole: 'finance', action: 'confirm_supplement_complete', remark: '[第2轮] 财务确认补件完成，进入待复核状态，版本：v6→v7', operatedAt: addDays(now, -3) },
+    { id: 'LOG020', reimbursementId: 'BX1006', operatorId: 'u3', operatorName: '王五', operatorRole: 'finance', action: 'approve_finance', remark: '财务复核通过', operatedAt: addDays(now, -2) },
+    { id: 'LOG021', reimbursementId: 'BX1006', operatorId: 'u4', operatorName: '赵六', operatorRole: 'archiver', action: 'archive', remark: '已归档', operatedAt: now }
   ];
   data.operationLogs = logs;
 

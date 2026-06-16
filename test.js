@@ -233,6 +233,217 @@ async function runAll() {
   });
 
   console.log('\n' + '='.repeat(60));
+  console.log('四、多轮补件链路验证（发起→提交→确认→再发起→再提交→再确认→归档→导出）');
+  console.log('='.repeat(60));
+
+  await test('重置数据并重新导入', async () => {
+    const { execSync } = require('child_process');
+    execSync('node seed.js', { cwd: __dirname, stdio: 'pipe' });
+    return '已重置';
+  });
+
+  const bx1001initial = await test('查看 BX1001 初始状态', () =>
+    request('GET', '/api/reimbursements/BX1001', 'u2'));
+  console.log(`  初始补件轮次: ${bx1001initial.supplementCycle}`);
+  console.log(`  初始轮次数组长度: ${bx1001initial.supplementRounds ? bx1001initial.supplementRounds.length : 0}`);
+
+  const round1Request = await test('【第1轮】审核员发起补件（缺：出差审批单）', () =>
+    request('POST', '/api/reimbursements/BX1001/request-supplement', 'u2', {
+      missingAttachments: ['出差审批单'],
+      deadlineDays: 3,
+      version: bx1001initial.version
+    }));
+  console.log(`  第1轮后补件轮次: ${round1Request.supplementCycle}`);
+  console.log(`  第1轮后轮次数组长度: ${round1Request.supplementRounds.length}`);
+  if (round1Request.supplementRounds.length !== 1) {
+    throw new Error('第1轮补后轮次数组长度应为1');
+  }
+  const r1 = round1Request.supplementRounds[0];
+  console.log(`  第1轮 - 发起人: ${r1.requestedByName}, 缺失: ${r1.missingAttachments.join(',')}, 状态: ${r1.status}`);
+
+  const round1Submit = await test('【第1轮】申请人提交补件材料', () =>
+    request('POST', '/api/reimbursements/BX1001/submit-supplement', 'u1', {
+      attachments: [
+        { id: 'a_new1', name: '出差审批单.pdf', category: '审批单', size: '150KB', uploadedAt: new Date().toISOString() }
+      ],
+      version: round1Request.version
+    }));
+  console.log(`  第1轮提交后轮次数组长度: ${round1Submit.supplementRounds.length}`);
+  const r1AfterSubmit = round1Submit.supplementRounds[0];
+  console.log(`  第1轮 - 提交人: ${r1AfterSubmit.submittedByName}, 附件数: ${r1AfterSubmit.submittedAttachments.length}, 状态: ${r1AfterSubmit.status}`);
+
+  const round1Confirm = await test('【第1轮】财务确认补件完成', () =>
+    request('POST', '/api/reimbursements/BX1001/confirm-supplement', 'u3', {
+      version: round1Submit.version
+    }));
+  console.log(`  第1轮确认后轮次数组长度: ${round1Confirm.supplementRounds.length}`);
+  const r1AfterConfirm = round1Confirm.supplementRounds[0];
+  console.log(`  第1轮 - 确认人: ${r1AfterConfirm.confirmedByName}, 结果: ${r1AfterConfirm.confirmResult}, 状态: ${r1AfterConfirm.status}`);
+  if (r1AfterConfirm.confirmResult !== 'passed') {
+    throw new Error('第1轮确认结果应为 passed');
+  }
+
+  const round2Request = await test('【第2轮】财务再次发起补件（缺：餐饮发票）', () =>
+    request('POST', '/api/reimbursements/BX1001/request-supplement', 'u3', {
+      missingAttachments: ['餐饮发票'],
+      deadlineDays: 2,
+      version: round1Confirm.version
+    }));
+  console.log(`  第2轮后补件轮次: ${round2Request.supplementCycle}`);
+  console.log(`  第2轮后轮次数组长度: ${round2Request.supplementRounds.length}`);
+  if (round2Request.supplementRounds.length !== 2) {
+    throw new Error('第2轮补后轮次数组长度应为2');
+  }
+  const r2 = round2Request.supplementRounds[1];
+  console.log(`  第2轮 - 发起人: ${r2.requestedByName}, 缺失: ${r2.missingAttachments.join(',')}, 状态: ${r2.status}`);
+  console.log(`  第1轮数据保留 - 确认人: ${round2Request.supplementRounds[0].confirmedByName}, 结果: ${round2Request.supplementRounds[0].confirmResult}`);
+
+  const round2Submit = await test('【第2轮】申请人再次提交补件材料', () =>
+    request('POST', '/api/reimbursements/BX1001/submit-supplement', 'u1', {
+      attachments: [
+        { id: 'a_new2', name: '餐饮发票.pdf', category: '发票', size: '80KB', uploadedAt: new Date().toISOString() }
+      ],
+      version: round2Request.version
+    }));
+  console.log(`  第2轮提交后轮次数组长度: ${round2Submit.supplementRounds.length}`);
+  const r2AfterSubmit = round2Submit.supplementRounds[1];
+  console.log(`  第2轮 - 提交人: ${r2AfterSubmit.submittedByName}, 附件数: ${r2AfterSubmit.submittedAttachments.length}`);
+
+  const round2Confirm = await test('【第2轮】财务再次确认补件完成', () =>
+    request('POST', '/api/reimbursements/BX1001/confirm-supplement', 'u3', {
+      version: round2Submit.version
+    }));
+  console.log(`  第2轮确认后轮次数组长度: ${round2Confirm.supplementRounds.length}`);
+  const r2AfterConfirm = round2Confirm.supplementRounds[1];
+  console.log(`  第2轮 - 确认人: ${r2AfterConfirm.confirmedByName}, 结果: ${r2AfterConfirm.confirmResult}`);
+
+  await test('财务复核通过', () =>
+    request('POST', '/api/reimbursements/BX1001/approve', 'u3', { version: round2Confirm.version }));
+
+  const multiRoundArchived = await test('归档员归档', () =>
+    request('POST', '/api/reimbursements/BX1001/archive', 'u4'));
+
+  const multiRoundExport = await test('导出归档文件（验证多轮补件数据完整）', () =>
+    request('GET', '/api/reimbursements/BX1001/export', 'u4'));
+  console.log(`  导出包含 ${multiRoundExport.supplementSummary.cycles.length} 轮补件数据`);
+  if (multiRoundExport.supplementSummary.cycles.length !== 2) {
+    throw new Error('导出应包含2轮补件数据，实际：' + multiRoundExport.supplementSummary.cycles.length);
+  }
+  const expR1 = multiRoundExport.supplementSummary.cycles[0];
+  const expR2 = multiRoundExport.supplementSummary.cycles[1];
+  console.log(`  第1轮导出 - 发起人:${expR1.requestedByName} 提交人:${expR1.submittedByName} 确认人:${expR1.confirmedByName} 结果:${expR1.confirmResult}`);
+  console.log(`  第2轮导出 - 发起人:${expR2.requestedByName} 提交人:${expR2.submittedByName} 确认人:${expR2.confirmedByName} 结果:${expR2.confirmResult}`);
+  console.log(`  报销单内嵌轮次数据长度: ${multiRoundExport.reimbursement.supplementRounds.length}`);
+  if (!expR1.submittedAttachments || expR1.submittedAttachments.length === 0) {
+    throw new Error('第1轮导出缺少提交附件快照');
+  }
+  if (!expR1.confirmedAt || !expR1.confirmedBy) {
+    throw new Error('第1轮导出缺少确认信息');
+  }
+  if (!expR2.submittedAttachments || expR2.submittedAttachments.length === 0) {
+    throw new Error('第2轮导出缺少提交附件快照');
+  }
+
+  console.log('\n' + '='.repeat(60));
+  console.log('五、样例数据多轮补件导出验证（BX1006）');
+  console.log('='.repeat(60));
+
+  const bx1006Detail = await test('查看 BX1006 详情（已归档样例数据）', () =>
+    request('GET', '/api/reimbursements/BX1006', 'u4'));
+  console.log(`  BX1006 补件轮次: ${bx1006Detail.supplementCycle}`);
+  console.log(`  BX1006 轮次数组长度: ${bx1006Detail.supplementRounds.length}`);
+  bx1006Detail.supplementRounds.forEach((r, idx) => {
+    console.log(`  第${idx + 1}轮 - 缺失:${r.missingAttachments.join(',')} 确认人:${r.confirmedByName} 结果:${r.confirmResult} 提交附件:${r.submittedAttachments.length}个`);
+  });
+
+  const bx1006Export = await test('导出 BX1006 归档文件', () =>
+    request('GET', '/api/reimbursements/BX1006/export', 'u4'));
+  console.log(`  BX1006 导出轮次: ${bx1006Export.supplementSummary.totalCycles}`);
+  if (bx1006Export.supplementSummary.totalCycles !== 2) {
+    throw new Error('BX1006 导出应包含2轮补件');
+  }
+
+  console.log('\n' + '='.repeat(60));
+  console.log('六、版本冲突保护验证');
+  console.log('='.repeat(60));
+
+  await test('重置数据并重新导入', async () => {
+    const { execSync } = require('child_process');
+    execSync('node seed.js', { cwd: __dirname, stdio: 'pipe' });
+    return '已重置';
+  });
+
+  const bx1001v1 = await test('读取 BX1001 初始版本', () =>
+    request('GET', '/api/reimbursements/BX1001', 'u2'));
+  console.log(`  当前版本: v${bx1001v1.version}`);
+
+  await test('并发场景：用旧版本号发起补件应失败', async () => {
+    try {
+      await request('POST', '/api/reimbursements/BX1001/request-supplement', 'u2', {
+        missingAttachments: ['出差审批单'],
+        deadlineDays: 3,
+        version: 999
+      });
+      throw new Error('版本冲突未检测到！');
+    } catch (e) {
+      if (e.message.includes('版本冲突')) {
+        return '版本冲突保护正常';
+      }
+      throw e;
+    }
+  });
+
+  const bx1001AfterFirst = await test('正确版本发起补件成功', () =>
+    request('POST', '/api/reimbursements/BX1001/request-supplement', 'u2', {
+      missingAttachments: ['出差审批单'],
+      deadlineDays: 3,
+      version: bx1001v1.version
+    }));
+  console.log(`  新版本号: v${bx1001AfterFirst.version}`);
+
+  await test('再用旧版本号提交补件应失败', async () => {
+    try {
+      await request('POST', '/api/reimbursements/BX1001/submit-supplement', 'u1', {
+        attachments: [
+          { id: 'a_conflict', name: '冲突测试.pdf', category: '审批单', size: '100KB', uploadedAt: new Date().toISOString() }
+        ],
+        version: bx1001v1.version
+      });
+      throw new Error('版本冲突未检测到！');
+    } catch (e) {
+      if (e.message.includes('版本冲突')) {
+        return '提交时版本冲突保护正常';
+      }
+      throw e;
+    }
+  });
+
+  console.log('\n' + '='.repeat(60));
+  console.log('七、列表页与详情页共用轮次数据验证');
+  console.log('='.repeat(60));
+
+  const listData = await test('从列表页获取数据', () =>
+    request('GET', '/api/reimbursements', 'u4'));
+  const listBx1006 = listData.list.find(r => r.id === 'BX1006');
+  console.log(`  列表页 BX1006 轮次数组长度: ${listBx1006.supplementRounds.length}`);
+
+  const detailBx1006 = await test('从详情页获取数据', () =>
+    request('GET', '/api/reimbursements/BX1006', 'u4'));
+  console.log(`  详情页 BX1006 轮次数组长度: ${detailBx1006.supplementRounds.length}`);
+
+  if (listBx1006.supplementRounds.length !== detailBx1006.supplementRounds.length) {
+    throw new Error('列表页和详情页轮次数据不一致');
+  }
+  for (let i = 0; i < listBx1006.supplementRounds.length; i++) {
+    const lr = listBx1006.supplementRounds[i];
+    const dr = detailBx1006.supplementRounds[i];
+    if (lr.cycle !== dr.cycle || lr.confirmResult !== dr.confirmResult) {
+      throw new Error(`第${i + 1}轮数据列表页与详情页不一致`);
+    }
+  }
+  console.log('  ✅ 列表页与详情页轮次数据一致');
+
+  console.log('\n' + '='.repeat(60));
   console.log('🎉 所有测试通过！');
   console.log('='.repeat(60));
 }
