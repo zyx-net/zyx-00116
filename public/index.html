@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>报销单补件催办与归档工作台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <h1>📋 报销单补件催办与归档工作台</h1>
+      </div>
+      <div class="header-right">
+        <div class="role-switcher">
+          <label>当前角色：</label>
+          <select id="roleSelect"></select>
+        </div>
+        <button class="btn btn-secondary" id="resetBtn" title="重置所有数据">重置数据</button>
+      </div>
+    </header>
+
+    <div class="main">
+      <aside class="sidebar">
+        <div class="sidebar-title">单据状态</div>
+        <nav class="status-nav" id="statusNav"></nav>
+        <div class="sidebar-footer">
+          <div class="stat-item">
+            <span class="stat-label">待办总数</span>
+            <span class="stat-value" id="todoCount">0</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="content">
+        <div class="list-panel">
+          <div class="panel-header">
+            <h2 id="listTitle">报销单列表</h2>
+            <button class="btn btn-primary" id="createBtn" style="display:none">+ 新建报销单</button>
+          </div>
+          <div class="list-container" id="listContainer">
+            <div class="empty-state">加载中...</div>
+          </div>
+        </div>
+
+        <div class="detail-panel" id="detailPanel">
+          <div class="empty-state">
+            <div style="font-size:48px;margin-bottom:16px">📄</div>
+            <p>请选择左侧报销单查看详情</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" style="display:none">
+    <div class="modal-mask"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modalTitle">标题</h3>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" style="display:none"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
