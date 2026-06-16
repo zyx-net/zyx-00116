@@ -341,11 +341,11 @@ async function main() {
     const r = data.reimbursements.find(x => x.id === 'BX2004');
     r.attachments.push(newAtt('att-new2', '发票.pdf', '发票'));
     saveData(data);
-    service.confirmSupplementComplete('BX2004', 'u2');
+    service.confirmSupplementComplete('BX2004', 'u3');
     const logs = loadData().operationLogs.filter(l => l.reimbursementId === 'BX2004');
     const confirmLog = logs.find(l => l.action === 'confirm_supplement_complete');
     assertEqual(confirmLog !== undefined, true, '存在confirm_supplement_complete日志');
-    assertEqual(confirmLog.operatorRole, 'auditor', '操作人角色是审核员');
+    assertEqual(confirmLog.operatorRole, 'finance', '操作人角色是财务复核员');
     return `操作日志已记录：${confirmLog.remark}`;
   });
 
@@ -625,7 +625,7 @@ async function main() {
     const r = data.reimbursements.find(x => x.id === 'BX2004');
     r.attachments.push(newAtt('restart-att', '发票.pdf', '发票'));
     saveData(data);
-    service.confirmSupplementComplete('BX2004', 'u2');
+    service.confirmSupplementComplete('BX2004', 'u3');
 
     const beforeDetail = service.getReimbursementDetail('BX2004');
 

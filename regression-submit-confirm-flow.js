@@ -320,15 +320,18 @@ async function main() {
   test('Step 8: 验证操作日志完整链路', () => {
     const detail = service.getReimbursementDetail(testId);
     const logs = detail.operationLogs;
-    const actions = logs.map(l => l.action).reverse();
+    const coreActions = logs.filter(l => l.action !== 'round_status_change').map(l => l.action).reverse();
 
-    assertEqual(actions[0], 'create', '第1步：创建');
-    assertEqual(actions[1], 'approve_audit', '第2步：初审通过');
-    assertEqual(actions[2], 'request_supplement', '第3步：发起补件');
-    assertEqual(actions[3], 'submit_supplement', '第4步：提交补件');
-    assertEqual(actions[4], 'confirm_supplement_complete', '第5步：确认补件完成');
-    assertEqual(actions[5], 'approve_finance', '第6步：复核通过');
-    assertEqual(actions[6], 'archive', '第7步：归档');
+    assertEqual(coreActions[0], 'create', '第1步：创建');
+    assertEqual(coreActions[1], 'approve_audit', '第2步：初审通过');
+    assertEqual(coreActions[2], 'request_supplement', '第3步：发起补件');
+    assertEqual(coreActions[3], 'submit_supplement', '第4步：提交补件');
+    assertEqual(coreActions[4], 'confirm_supplement_complete', '第5步：确认补件完成');
+    assertEqual(coreActions[5], 'approve_finance', '第6步：复核通过');
+    assertEqual(coreActions[6], 'archive', '第7步：归档');
+
+    const roundLogs = logs.filter(l => l.action === 'round_status_change');
+    assertEqual(roundLogs.length >= 3, true, '每轮状态变更日志至少3条');
 
     const submitLog = logs.find(l => l.action === 'submit_supplement');
     assertEqual(submitLog.remark.includes('待财务确认'), true, '提交补件日志包含待财务确认');
@@ -336,7 +339,7 @@ async function main() {
     const confirmLog = logs.find(l => l.action === 'confirm_supplement_complete');
     assertEqual(confirmLog.remark.includes('待复核'), true, '确认补件完成日志包含待复核');
 
-    return `日志完整：${actions.join(' → ')}`;
+    return `核心日志完整：${coreActions.join(' → ')}，轮次变更日志${roundLogs.length}条`;
   });
 
   console.log('\n' + '='.repeat(70));

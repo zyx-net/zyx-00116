@@ -56,8 +56,10 @@ npm start
 |------|------|--------|-----------|
 | 申请人 | 张三 | u1 | 创建报销单、提交补件材料 |
 | 审核员 | 李四 | u2 | 初审通过、发起补件、驳回、催办 |
-| 财务复核员 | 王五 | u3 | 复核通过、发起补件、驳回、催办 |
+| 财务复核员 | 王五 | u3 | 复核通过、**确认补件完成**、发起补件、驳回、催办 |
 | 归档员 | 赵六 | u4 | 归档、导出归档文件 |
+
+> **权限说明**：**确认补件完成**操作仅限财务复核员角色，审核员不可代替财务确认。这是为了确保补件审核与财务确认分权，避免审核员既发起补件又确认完成的口径偏差。
 
 在页面右上角**选择角色**即可切换身份操作，无需登录。
 
@@ -280,6 +282,7 @@ npm start
 ├── regression-remind-count.js   # 回归测试：催办次数计数准确性
 ├── regression-supplement-panel.js  # 回归测试：补件任务面板 + 批量催办 + 乐观锁
 ├── regression-submit-confirm-flow.js # 回归测试：submit → confirm 完整链路
+├── regression-supplement-archive.js  # 回归测试：补件归档完整性（旧数据/多轮/权限/日志）
 ├── data/
 │   └── db.json                  # 数据文件（自动生成）
 └── public/
@@ -330,6 +333,7 @@ npm run verify
 | `node regression-remind-count.js` | 催办次数计数准确性 |
 | `node regression-supplement-panel.js` | 补件任务面板 + 批量催办 + 乐观锁 |
 | `node regression-submit-confirm-flow.js` | submit → confirm 完整链路验证 |
+| `node regression-supplement-archive.js` | 补件归档完整性：旧数据兼容/多轮历史还原/权限对齐/并发冲突/日志追踪 |
 
 所有测试脚本失败时均返回非 0 退出码，可直接集成到 CI 流程。
 

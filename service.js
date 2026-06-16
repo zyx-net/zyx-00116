@@ -2,6 +2,12 @@ const store = require('./store');
 
 const { STATUS, STATUS_LABEL, USERS, loadData, saveData, genId, nowISO, addDays, isOverdue, matchAttachmentToMissing, normalizeSupplementRound } = store;
 
+function parseCycleFromRemark(remark) {
+  if (!remark) return null;
+  const m = remark.match(/\[第(\d+)轮\]/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
 function buildSupplementRounds(r, data) {
   if (r.supplementRounds && r.supplementRounds.length > 0) {
     return r.supplementRounds
@@ -12,20 +18,12 @@ function buildSupplementRounds(r, data) {
   const rounds = [];
   const reminders = (data.reminders || []).filter(rm => rm.reimbursementId === r.id);
   const logs = (data.operationLogs || []).filter(l => l.reimbursementId === r.id);
-  const cycleSet = new Set();
-  for (const rm of reminders) {
-    if (rm.cycle) cycleSet.add(rm.cycle);
-  }
-  for (const log of logs) {
-    if (log.action === 'request_supplement') {
-      const match = log.remark && log.remark.match(/发起补件/);
-      if (match) {
-        for (let i = 1; i <= (r.supplementCycle || 0); i++) cycleSet.add(i);
-      }
-    }
-  }
-  for (const cycle of cycleSet) {
+  const maxCycle = r.supplementCycle || 0;
+  if (maxCycle === 0) return [];
+
+  for (let cycle = 1; cycle <= maxCycle; cycle++) {
     const round = normalizeSupplementRound({ cycle, status: 'requested' });
+
     const rm = reminders.find(x => x.cycle === cycle);
     if (rm) {
       round.requestedAt = rm.remindedAt;
@@ -38,7 +36,8 @@ function buildSupplementRounds(r, data) {
         round.missingAttachments = missingMatch[1].split(/[、,，]/).map(s => s.trim()).filter(Boolean);
       }
     }
-    const reqLog = logs.find(l => l.action === 'request_supplement');
+
+    const reqLog = logs.find(l => l.action === 'request_supplement' && parseCycleFromRemark(l.remark) === cycle);
     if (reqLog) {
       round.requestedAt = round.requestedAt || reqLog.operatedAt;
       round.requestedBy = round.requestedBy || reqLog.operatorId;
@@ -51,9 +50,9 @@ function buildSupplementRounds(r, data) {
       const deadlineMatch = remark.match(/截止[：:]\s*(\S+)/);
       if (deadlineMatch) round.deadline = round.deadline || deadlineMatch[1];
     }
-    const submitLogs = logs.filter(l => l.action === 'submit_supplement');
-    if (submitLogs.length > 0) {
-      const submitLog = submitLogs[0];
+
+    const submitLog = logs.find(l => l.action === 'submit_supplement' && parseCycleFromRemark(l.remark) === cycle);
+    if (submitLog) {
       round.submittedAt = submitLog.operatedAt;
       round.submittedBy = submitLog.operatorId;
       round.submittedByName = submitLog.operatorName;
@@ -63,7 +62,8 @@ function buildSupplementRounds(r, data) {
       }
       round.status = 'submitted';
     }
-    const confirmLog = logs.find(l => l.action === 'confirm_supplement_complete');
+
+    const confirmLog = logs.find(l => l.action === 'confirm_supplement_complete' && parseCycleFromRemark(l.remark) === cycle);
     if (confirmLog) {
       round.confirmedAt = confirmLog.operatedAt;
       round.confirmedBy = confirmLog.operatorId;
@@ -72,6 +72,19 @@ function buildSupplementRounds(r, data) {
       round.confirmRemark = confirmLog.remark || '';
       round.status = 'confirmed_passed';
     }
+
+    const rejectLog = logs.find(l => l.action === 'reject' && parseCycleFromRemark(l.remark) === cycle);
+    if (rejectLog && !confirmLog) {
+      round.rejectedAt = rejectLog.operatedAt;
+      round.rejectedBy = rejectLog.operatorId;
+      round.rejectedByName = rejectLog.operatorName;
+      const reasonMatch = (rejectLog.remark || '').match(/原因[：:]\s*(.+)/);
+      round.rejectReason = reasonMatch ? reasonMatch[1] : rejectLog.remark || '';
+      round.confirmResult = 'rejected';
+      round.confirmRemark = rejectLog.remark || '';
+      round.status = 'confirmed_rejected';
+    }
+
     rounds.push(round);
   }
   return rounds.sort((a, b) => a.cycle - b.cycle);
@@ -240,6 +253,10 @@ function auditReject(id, operatorId, reason, expectedVersion) {
 
   logOperation(data, id, operatorId, 'reject',
     `${currentCycle > 0 ? `[第${currentCycle}轮] ` : ''}驳回，原因：${reason}，版本：v${versionBeforeBump}→v${r.version}`);
+  if (currentCycle > 0) {
+    logOperation(data, id, operatorId, 'round_status_change',
+      `[第${currentCycle}轮] 轮次状态变更：→ confirmed_rejected，驳回人：${op ? op.name : '未知'}，原因：${reason}`);
+  }
   saveData(data);
   return getReimbursement(id);
 }
@@ -255,6 +272,7 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
   if (missing.length === 0) {
     throw new Error('请指定缺失的附件');
   }
+  const existingRounds = buildSupplementRounds(r, data);
   r.status = STATUS.PENDING_SUPPLEMENT;
   r.missingAttachments = missing;
   r.supplementCycle = (r.supplementCycle || 0) + 1;
@@ -265,7 +283,6 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
   const op = USERS.find(u => u.id === operatorId);
   const applicant = USERS.find(u => u.id === r.applicantId);
 
-  const existingRounds = buildSupplementRounds(r, data);
   const newRound = normalizeSupplementRound({
     cycle: r.supplementCycle,
     requestedAt: now,
@@ -280,6 +297,8 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
 
   logOperation(data, id, operatorId, 'request_supplement',
     `[第${r.supplementCycle}轮] 发起补件，缺失：${missing.join('、')}，截止：${r.deadline.slice(0, 10)}，版本：v${versionBeforeBump}→v${r.version}`);
+  logOperation(data, id, operatorId, 'round_status_change',
+    `[第${r.supplementCycle}轮] 轮次状态变更：→ requested，发起人：${op ? op.name : '未知'}`);
   const reminder = {
     id: genId(data, 'RM'),
     reimbursementId: id,
@@ -411,7 +430,7 @@ function confirmSupplementComplete(id, operatorId, expectedVersion) {
   const r = data.reimbursements.find(x => x.id === id);
   if (!r) throw new Error('报销单不存在');
   checkVersion(r, expectedVersion);
-  assertRole(operatorId, ['auditor', 'finance']);
+  assertRole(operatorId, ['finance']);
   assertStatus(r, [STATUS.PENDING_SUPPLEMENT], '仅待补件状态可确认补件完成');
 
   const required = r.missingAttachments || [];
@@ -452,6 +471,8 @@ function confirmSupplementComplete(id, operatorId, expectedVersion) {
 
   logOperation(data, id, operatorId, 'confirm_supplement_complete',
     `[第${currentCycle}轮] 财务确认补件完成，进入待复核状态，版本：v${versionBeforeBump}→v${r.version}`);
+  logOperation(data, id, operatorId, 'round_status_change',
+    `[第${currentCycle}轮] 轮次状态变更：submitted → confirmed_passed，确认人：${op ? op.name : '未知'}，结果：passed`);
 
   saveData(data);
   return getReimbursement(id);
@@ -476,6 +497,7 @@ function listSupplementTasks(filter = {}) {
     const missingList = r.missingAttachments || [];
     const pendingConfirm = missingList.length === 0;
     const { matched, unmatched } = matchAttachmentToMissing(r.attachments, missingList);
+    const supplementRounds = buildSupplementRounds(r, data);
 
     return {
       id: r.id,
@@ -499,7 +521,8 @@ function listSupplementTasks(filter = {}) {
       remindCount: totalRemindCount,
       version: r.version || 1,
       createdAt: r.createdAt,
-      updatedAt: r.updatedAt
+      updatedAt: r.updatedAt,
+      supplementRounds
     };
   });
 
@@ -560,6 +583,8 @@ function submitSupplement(id, operatorId, newAttachments, expectedVersion) {
 
   logOperation(data, id, operatorId, 'submit_supplement',
     `[第${currentCycle}轮] 提交补件材料：${newAtts.map(a => a.name).join('、')}，匹配到：${matchedNames || '无'}${unmatched.length === 0 ? '（已全部补齐，待财务确认）' : `，仍缺：${unmatched.join('、')}`}，版本：v${versionBeforeBump}→v${r.version}`);
+  logOperation(data, id, operatorId, 'round_status_change',
+    `[第${currentCycle}轮] 轮次状态变更：requested → submitted，提交人：${op ? op.name : '未知'}`);
   saveData(data);
   return getReimbursement(id);
 }
@@ -633,7 +658,8 @@ function exportArchive(id) {
     l.action === 'submit_supplement' ||
     l.action === 'confirm_supplement_complete' ||
     l.action === 'remind_again' ||
-    l.action === 'reject'
+    l.action === 'reject' ||
+    l.action === 'round_status_change'
   );
 
   const exportRounds = supplementRounds.map(round => {
@@ -725,5 +751,7 @@ module.exports = {
   auditApprove,
   archive,
   exportArchive,
-  resetAll
+  resetAll,
+  buildSupplementRounds,
+  parseCycleFromRemark
 };
