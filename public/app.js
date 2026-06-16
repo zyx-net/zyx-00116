@@ -193,7 +193,7 @@ function renderDetail(d) {
         </div>
         <div class="detail-row">
           <span class="detail-label">催办次数</span>
-          <span class="detail-value">${d.reminderCount} 次</span>
+          <span class="detail-value">${d.remindCount} 次</span>
         </div>
       </div>
     </div>

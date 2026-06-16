@@ -19,12 +19,14 @@ function decorateReimbursement(r) {
   const data = loadData();
   const applicant = USERS.find(u => u.id === r.applicantId);
   const reminders = data.reminders.filter(rm => rm.reimbursementId === r.id);
+  const totalRemindCount = reminders.reduce((sum, rm) => sum + (rm.remindCount || 0), 0);
   const overdue = r.status === STATUS.PENDING_SUPPLEMENT && r.deadline && isOverdue(r.deadline);
   return {
     ...r,
     statusLabel: STATUS_LABEL[r.status],
     applicantName: applicant ? applicant.name : '未知',
     reminderCount: reminders.length,
+    remindCount: totalRemindCount,
     lastReminderAt: reminders.length > 0 ? reminders[reminders.length - 1].remindedAt : null,
     overdue
   };

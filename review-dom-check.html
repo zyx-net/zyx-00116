@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html><body>
+<script>
+(async () => {
+  localStorage.clear();
+  const meta = await fetch('http://127.0.0.1:3000/api/meta').then(r => r.json());
+  const detail = await fetch('http://127.0.0.1:3000/api/reimbursements/BX1002', { headers: { 'X-User-Id': 'u2' } }).then(r => r.json());
+  const remindCountText = detail.remindCount + ' ?';
+  const logsCount = detail.operationLogs.length;
+  document.body.innerHTML = '<div id="result">' + JSON.stringify({ remindCountText, logsCount, reminderRecords: detail.reminders.length, reminderRecordCount: detail.reminders[0]?.remindCount }) + '</div>';
+})();
+</script>
+</body></html>
