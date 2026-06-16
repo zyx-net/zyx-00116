@@ -32,6 +32,18 @@ const API = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || '操作失败');
     return data;
+  },
+  async delete(path, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (getUserId()) headers['X-User-Id'] = getUserId();
+    const res = await fetch(path, {
+      method: 'DELETE',
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '操作失败');
+    return data;
   }
 };
 
@@ -44,12 +56,36 @@ let listData = [];
 let taskData = [];
 let selectedTaskIds = new Set();
 let editingDeadlineId = null;
+let budgetListData = [];
+let currentBudgetId = null;
+let budgetFilter = { month: '', departmentId: '', category: '' };
+let budgetSummary = { totalAmount: 0, frozenAmount: 0, deductedAmount: 0, availableAmount: 0 };
+let budgetTransactionData = [];
 
 async function init() {
   meta = await API.get('/api/meta');
   initRoleSelect();
+  initBudgetFilters();
   switchUser(meta.users[0].id);
   bindEvents();
+}
+
+function initBudgetFilters() {
+  const deptSel = document.getElementById('budgetDeptFilter');
+  const catSel = document.getElementById('budgetCategoryFilter');
+  if (deptSel && meta.departments) {
+    deptSel.innerHTML = '<option value="">全部</option>' +
+      meta.departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  }
+  if (catSel && meta.expenseCategories) {
+    catSel.innerHTML = '<option value="">全部</option>' +
+      meta.expenseCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+  const monthInput = document.getElementById('budgetMonthFilter');
+  if (monthInput) {
+    const now = new Date();
+    monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
 }
 
 function initRoleSelect() {
@@ -64,6 +100,7 @@ function bindEvents() {
     switchUser(e.target.value);
   });
   document.getElementById('createBtn').addEventListener('click', showCreateModal);
+  document.getElementById('createBudgetBtn').addEventListener('click', showCreateBudgetModal);
   document.getElementById('resetBtn').addEventListener('click', resetData);
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.querySelector('.modal-mask').addEventListener('click', closeModal);
@@ -75,6 +112,29 @@ function bindEvents() {
   });
 
   document.getElementById('batchRemindBtn').addEventListener('click', handleBatchRemind);
+
+  document.getElementById('budgetSearchBtn').addEventListener('click', () => {
+    budgetFilter.month = document.getElementById('budgetMonthFilter').value;
+    budgetFilter.departmentId = document.getElementById('budgetDeptFilter').value;
+    budgetFilter.category = document.getElementById('budgetCategoryFilter').value;
+    loadBudgetList();
+    loadBudgetSummary();
+  });
+
+  document.getElementById('budgetResetBtn').addEventListener('click', () => {
+    const now = new Date();
+    document.getElementById('budgetMonthFilter').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('budgetDeptFilter').value = '';
+    document.getElementById('budgetCategoryFilter').value = '';
+    budgetFilter = { month: '', departmentId: '', category: '' };
+    loadBudgetList();
+    loadBudgetSummary();
+  });
+
+  document.getElementById('budgetImportBtn').addEventListener('click', showBudgetImportModal);
+  document.getElementById('budgetExportBtn').addEventListener('click', exportBudgets);
+  document.getElementById('budgetTxExportBtn').addEventListener('click', exportBudgetTransactions);
+  document.getElementById('budgetReconcileBtn').addEventListener('click', reconcileBudgets);
 }
 
 function switchTab(tab) {
@@ -84,11 +144,19 @@ function switchTab(tab) {
   });
   document.getElementById('listContainer').style.display = tab === 'list' ? 'block' : 'none';
   document.getElementById('taskPanel').style.display = tab === 'tasks' ? 'flex' : 'none';
+  document.getElementById('budgetPanel').style.display = tab === 'budgets' ? 'flex' : 'none';
   document.getElementById('createBtn').style.display =
     tab === 'list' && currentUser.role === 'applicant' ? 'inline-block' : 'none';
+  document.getElementById('createBudgetBtn').style.display =
+    tab === 'budgets' && ['admin', 'finance'].includes(currentUser.role) ? 'inline-block' : 'none';
 
   if (tab === 'tasks') {
     loadTaskList();
+    renderDetailEmpty();
+  } else if (tab === 'budgets') {
+    loadBudgetList();
+    loadBudgetSummary();
+    renderBudgetDetailEmpty();
   } else {
     loadList();
   }
@@ -100,16 +168,32 @@ function switchUser(userId) {
   document.getElementById('roleSelect').value = userId;
   document.getElementById('createBtn').style.display =
     currentTab === 'list' && user.role === 'applicant' ? 'inline-block' : 'none';
+  document.getElementById('createBudgetBtn').style.display =
+    currentTab === 'budgets' && ['admin', 'finance'].includes(user.role) ? 'inline-block' : 'none';
+  const budgetTab = document.getElementById('budgetTab');
+  if (budgetTab) {
+    budgetTab.style.display = ['admin', 'finance'].includes(user.role) ? 'inline-block' : 'none';
+    if (currentTab === 'budgets' && !['admin', 'finance'].includes(user.role)) {
+      switchTab('list');
+    }
+  }
   currentStatus = 'all';
   currentId = null;
+  currentBudgetId = null;
   selectedTaskIds.clear();
   renderStatusNav();
   if (currentTab === 'tasks') {
     loadTaskList();
+  } else if (currentTab === 'budgets') {
+    loadBudgetList();
+    loadBudgetSummary();
+    renderBudgetDetailEmpty();
   } else {
     loadList();
   }
-  renderDetailEmpty();
+  if (currentTab !== 'budgets') {
+    renderDetailEmpty();
+  }
 }
 
 async function loadList() {
@@ -145,6 +229,7 @@ function renderStatusNav() {
     { key: 'pending_review', label: '待复核' },
     { key: 'approved', label: '已通过' },
     { key: 'rejected', label: '已驳回' },
+    { key: 'withdrawn', label: '已撤销' },
     { key: 'archived', label: '已归档' }
   ];
   nav.innerHTML = items.map(it => `
@@ -166,7 +251,7 @@ function updateTodoCount() {
   API.get('/api/reimbursements').then(data => {
     const counts = {};
     ['all', 'pending_audit', 'pending_supplement', 'pending_review',
-     'approved', 'rejected', 'archived'].forEach(k => counts[k] = 0);
+     'approved', 'rejected', 'withdrawn', 'archived'].forEach(k => counts[k] = 0);
     data.list.forEach(r => {
       counts.all++;
       if (counts[r.status] !== undefined) counts[r.status]++;
@@ -186,7 +271,9 @@ function renderList() {
     container.innerHTML = '<div class="empty-state">暂无数据</div>';
     return;
   }
-  container.innerHTML = listData.map(r => `
+  container.innerHTML = listData.map(r => {
+    const budgetTag = renderBudgetStatusTag(r.budgetStatus);
+    return `
     <div class="list-item ${currentId === r.id ? 'active' : ''}" data-id="${r.id}">
       <div class="list-item-title">
         <span>${r.title}</span>
@@ -195,12 +282,14 @@ function renderList() {
       <div class="list-item-meta">
         <div>
           <span class="status-tag status-${r.status}">${r.statusLabel}</span>
+          ${budgetTag}
           ${r.overdue ? '<span class="overdue-tag">已逾期</span>' : ''}
         </div>
         <span class="list-item-amount">¥${Number(r.amount).toFixed(2)}</span>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
   container.querySelectorAll('.list-item').forEach(el => {
     el.addEventListener('click', () => {
       currentId = el.dataset.id;
@@ -208,6 +297,19 @@ function renderList() {
       loadDetail();
     });
   });
+}
+
+function renderBudgetStatusTag(budgetStatus) {
+  if (!budgetStatus || !budgetStatus.hasBudget) {
+    return '<span class="budget-status-tag budget-status-none">无预算</span>';
+  }
+  const statusMap = {
+    frozen: { label: '冻结', cls: 'frozen' },
+    deducted: { label: '扣减', cls: 'deducted' },
+    released: { label: '释放', cls: 'released' }
+  };
+  const info = statusMap[budgetStatus.freezeStatus] || { label: budgetStatus.freezeStatus, cls: 'none' };
+  return `<span class="budget-status-tag budget-status-${info.cls}">${info.label}</span>`;
 }
 
 function renderTaskList() {
@@ -451,6 +553,7 @@ function renderDetail(d) {
       </div>
     </div>
   ` : '';
+  const budgetSection = renderBudgetDetailSection(d.budgetStatus);
   panel.innerHTML = `
     <div class="detail-card">
       <div class="detail-card-header">
@@ -487,6 +590,7 @@ function renderDetail(d) {
 
     ${rejectSection}
     ${supplementSection}
+    ${budgetSection}
 
     <div class="detail-card">
       <div class="detail-card-header">
@@ -522,6 +626,80 @@ function renderDetail(d) {
     </div>
   `;
   bindDetailActions(d);
+}
+
+function renderBudgetDetailSection(budgetStatus) {
+  if (!budgetStatus || !budgetStatus.hasBudget) {
+    return `
+    <div class="detail-card">
+      <div class="detail-card-header">💰 预算信息</div>
+      <div class="detail-card-body">
+        <div style="color:#999;text-align:center;padding:20px 0">
+          <span class="budget-status-tag budget-status-none">无预算</span>
+          <p style="margin-top:8px;font-size:13px">该报销单未关联预算</p>
+        </div>
+      </div>
+    </div>
+    `;
+  }
+  const statusMap = {
+    frozen: { label: '已冻结', cls: 'frozen' },
+    deducted: { label: '已扣减', cls: 'deducted' },
+    released: { label: '已释放', cls: 'released' }
+  };
+  const statusInfo = statusMap[budgetStatus.freezeStatus] || { label: budgetStatus.freezeStatus, cls: 'none' };
+  const usagePercent = budgetStatus.budgetInfo && budgetStatus.budgetInfo.totalAmount > 0
+    ? Math.min(100, ((budgetStatus.budgetInfo.usedAmount + budgetStatus.budgetInfo.frozenAmount) / budgetStatus.budgetInfo.totalAmount * 100)).toFixed(1)
+    : 0;
+
+  return `
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span>💰 预算信息</span>
+        <span class="budget-status-tag budget-status-${statusInfo.cls}">${statusInfo.label}</span>
+      </div>
+      <div class="detail-card-body">
+        <div class="detail-row">
+          <span class="detail-label">预算月份</span>
+          <span class="detail-value">${budgetStatus.month || '-'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">部门</span>
+          <span class="detail-value">${budgetStatus.departmentName || '-'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">费用科目</span>
+          <span class="detail-value">${budgetStatus.category || '-'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">冻结金额</span>
+          <span class="detail-value" style="color:#fa8c16;font-weight:600">¥${Number(budgetStatus.frozenAmount).toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">扣减金额</span>
+          <span class="detail-value" style="color:#f5222d;font-weight:600">¥${Number(budgetStatus.deductedAmount).toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">释放金额</span>
+          <span class="detail-value" style="color:#52c41a;font-weight:600">¥${Number(budgetStatus.releasedAmount).toFixed(2)}</span>
+        </div>
+        ${budgetStatus.budgetInfo ? `
+        <div class="detail-row" style="border-bottom:none">
+          <span class="detail-label">预算总额度</span>
+          <span class="detail-value">¥${Number(budgetStatus.budgetInfo.totalAmount).toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">可用余额</span>
+          <span class="detail-value" style="color:#52c41a;font-weight:600">¥${Number(budgetStatus.budgetInfo.availableAmount).toFixed(2)}</span>
+        </div>
+        <div class="budget-progress-bar">
+          <div class="budget-progress-fill" style="width:${usagePercent}%"></div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:#999;margin-top:4px">已使用 ${usagePercent}%</div>
+        ` : ''}
+      </div>
+    </div>
+  `;
 }
 
 function renderAttachments(d) {
@@ -620,6 +798,14 @@ function roleLabel(role) {
 function renderActions(d) {
   const role = currentUser.role;
   const btns = [];
+  if (role === 'applicant' && d.applicantId === currentUser.id) {
+    if (d.status === 'pending_audit') {
+      btns.push(`<button class="btn withdraw-btn" data-action="withdraw" data-version="${d.version}">↩️ 撤销</button>`);
+    }
+    if (d.status === 'withdrawn' || d.status === 'rejected') {
+      btns.push(`<button class="btn resubmit-btn" data-action="resubmit" data-version="${d.version}">📤 重新提交</button>`);
+    }
+  }
   if (role === 'auditor' && d.status === 'pending_audit') {
     btns.push(`<button class="btn btn-success" data-action="approve" data-version="${d.version}">✅ 初审通过</button>`);
     btns.push(`<button class="btn btn-warning" data-action="supplement" data-version="${d.version}">📨 发起补件</button>`);
@@ -697,6 +883,15 @@ async function handleAction(action, d, version) {
         break;
       case 'export':
         window.open(`/api/reimbursements/${d.id}/export`, '_blank');
+        break;
+      case 'withdraw':
+        showWithdrawModal(d, version);
+        break;
+      case 'resubmit':
+        if (!confirm('确定要重新提交这张报销单吗？')) return;
+        await API.post(`/api/reimbursements/${d.id}/resubmit`, { version });
+        toast('已重新提交', 'success');
+        refreshAll();
         break;
     }
   } catch (e) {
@@ -857,6 +1052,31 @@ function collectAttachments() {
   return list;
 }
 
+function showWithdrawModal(d, version) {
+  openModal('撤销报销单', `
+    <p style="margin-bottom:12px;color:#666">确定要撤销 <strong>${d.id}</strong> 吗？撤销后预算将被释放。</p>
+    <div class="form-group">
+      <label>撤销原因</label>
+      <textarea id="withdraw-reason" placeholder="请填写撤销原因（可选）"></textarea>
+    </div>
+  `, () => {
+    const reason = document.getElementById('withdraw-reason').value.trim();
+    API.post(`/api/reimbursements/${d.id}/withdraw`, { reason, version })
+      .then(() => {
+        toast('已撤销', 'success');
+        closeModal();
+        refreshAll();
+      })
+      .catch(e => {
+        toast(e.message, 'error');
+        if (e.message.includes('版本冲突')) {
+          setTimeout(() => { closeModal(); refreshAll(); }, 1500);
+        }
+      });
+    return false;
+  }, '确认撤销', 'btn-warning');
+}
+
 function showRejectModal(d, version) {
   openModal('驳回报销单', `
     <p style="margin-bottom:12px;color:#666">确定要驳回 <strong>${d.id}</strong> 吗？</p>
@@ -996,10 +1216,524 @@ function formatDate(iso) {
 function refreshAll() {
   if (currentTab === 'tasks') {
     loadTaskList();
+  } else if (currentTab === 'budgets') {
+    loadBudgetList();
+    loadBudgetSummary();
+    if (currentBudgetId) loadBudgetDetail();
   } else {
     loadList();
   }
-  if (currentId) loadDetail();
+  if (currentId && currentTab !== 'budgets') loadDetail();
+}
+
+async function loadBudgetList() {
+  const container = document.getElementById('budgetListContainer');
+  const params = new URLSearchParams();
+  if (budgetFilter.month) params.set('month', budgetFilter.month);
+  if (budgetFilter.departmentId) params.set('departmentId', budgetFilter.departmentId);
+  if (budgetFilter.category) params.set('category', budgetFilter.category);
+  const query = params.toString();
+  const data = await API.get('/api/budgets' + (query ? '?' + query : ''));
+  budgetListData = data.list;
+  renderBudgetList();
+}
+
+async function loadBudgetSummary() {
+  const params = new URLSearchParams();
+  if (budgetFilter.month) params.set('month', budgetFilter.month);
+  if (budgetFilter.departmentId) params.set('departmentId', budgetFilter.departmentId);
+  const query = params.toString();
+  try {
+    const data = await API.get('/api/budgets/summary' + (query ? '?' + query : ''));
+    budgetSummary = data;
+    updateBudgetSummaryDisplay();
+  } catch (e) {
+    console.error('加载预算汇总失败', e);
+  }
+}
+
+function updateBudgetSummaryDisplay() {
+  document.getElementById('budgetTotalAmount').textContent =
+    '¥' + Number(budgetSummary.totalAmount || 0).toFixed(2);
+  document.getElementById('budgetFrozenAmount').textContent =
+    '¥' + Number(budgetSummary.frozenAmount || 0).toFixed(2);
+  document.getElementById('budgetDeductedAmount').textContent =
+    '¥' + Number(budgetSummary.usedAmount || budgetSummary.deductedAmount || 0).toFixed(2);
+  document.getElementById('budgetAvailableAmount').textContent =
+    '¥' + Number(budgetSummary.availableAmount || 0).toFixed(2);
+}
+
+function renderBudgetList() {
+  const container = document.getElementById('budgetListContainer');
+  if (budgetListData.length === 0) {
+    container.innerHTML = '<div class="empty-state">暂无预算数据</div>';
+    return;
+  }
+  container.innerHTML = budgetListData.map(b => `
+    <div class="budget-item ${currentBudgetId === b.id ? 'active' : ''}" data-id="${b.id}">
+      <div class="budget-item-header">
+        <span class="budget-item-title">${b.departmentName} - ${b.category}</span>
+        <span class="budget-item-month">${b.month}</span>
+      </div>
+      <div class="budget-item-meta">
+        <span class="budget-item-amount">总额 ¥${Number(b.totalAmount).toFixed(2)}</span>
+        <span class="budget-item-used">已用 ¥${(Number(b.usedAmount) + Number(b.frozenAmount)).toFixed(2)}</span>
+        <span class="budget-item-available">可用 ¥${Number(b.availableAmount).toFixed(2)}</span>
+      </div>
+    </div>
+  `).join('');
+  container.querySelectorAll('.budget-item').forEach(el => {
+    el.addEventListener('click', () => {
+      currentBudgetId = el.dataset.id;
+      renderBudgetList();
+      loadBudgetDetail();
+    });
+  });
+}
+
+function renderBudgetDetailEmpty() {
+  document.getElementById('detailPanel').innerHTML = `
+    <div class="empty-state">
+      <div style="font-size:48px;margin-bottom:16px">💰</div>
+      <p>请选择左侧预算查看详情</p>
+    </div>
+  `;
+}
+
+async function loadBudgetDetail() {
+  if (!currentBudgetId) return;
+  const detail = await API.get('/api/budgets/' + currentBudgetId);
+  const txData = await API.get(`/api/budgets/${currentBudgetId}/transactions`);
+  budgetTransactionData = txData.list;
+  renderBudgetDetail(detail);
+}
+
+function renderBudgetDetail(b) {
+  const panel = document.getElementById('detailPanel');
+  const usedPercent = b.totalAmount > 0
+    ? Math.min(100, ((b.usedAmount + b.frozenAmount) / b.totalAmount * 100)).toFixed(1)
+    : 0;
+  const isFinanceOrAdmin = ['admin', 'finance'].includes(currentUser.role);
+  const transactionsHtml = renderBudgetTransactions(budgetTransactionData);
+
+  panel.innerHTML = `
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span>💰 ${b.departmentName} - ${b.category}</span>
+        <span class="status-tag ${b.availableAmount < 0 ? 'status-rejected' : 'status-approved'}">
+          ${b.availableAmount < 0 ? '超支' : '正常'}
+        </span>
+      </div>
+      <div class="detail-card-body">
+        <div class="detail-row">
+          <span class="detail-label">预算编号</span>
+          <span class="detail-value">${b.id}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">预算月份</span>
+          <span class="detail-value">${b.month}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">部门</span>
+          <span class="detail-value">${b.departmentName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">费用科目</span>
+          <span class="detail-value">${b.category}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">预算总额</span>
+          <span class="detail-value amount">¥${Number(b.totalAmount).toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">已扣减</span>
+          <span class="detail-value" style="color:#f5222d;font-weight:600">¥${Number(b.usedAmount).toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">已冻结</span>
+          <span class="detail-value" style="color:#fa8c16;font-weight:600">¥${Number(b.frozenAmount).toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">可用余额</span>
+          <span class="detail-value" style="color:${b.availableAmount >= 0 ? '#52c41a' : '#f5222d'};font-weight:600">
+            ¥${Number(b.availableAmount).toFixed(2)}
+          </span>
+        </div>
+        <div class="budget-progress-bar">
+          <div class="budget-progress-fill" style="width:${usedPercent}%"></div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:#999;margin-top:4px">使用率 ${usedPercent}%</div>
+        <div class="detail-row" style="border-bottom:none">
+          <span class="detail-label">版本号</span>
+          <span class="detail-value">v${b.version || 1}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-header">📊 预算流水</div>
+      <div class="detail-card-body">
+        <div class="budget-transaction-list">
+          ${transactionsHtml}
+        </div>
+      </div>
+    </div>
+
+    ${isFinanceOrAdmin ? `
+    <div class="detail-card">
+      <div class="detail-card-header">⚡ 操作</div>
+      <div class="detail-card-body">
+        <div class="action-bar">
+          <button class="btn btn-primary" data-budget-action="adjust" data-id="${b.id}" data-version="${b.version}">
+            ✏️ 调整额度
+          </button>
+          <button class="btn btn-info" data-budget-action="edit" data-id="${b.id}" data-version="${b.version}">
+            📝 编辑信息
+          </button>
+          ${currentUser.role === 'admin' ? `
+          <button class="btn btn-danger" data-budget-action="delete" data-id="${b.id}">
+            🗑️ 删除预算
+          </button>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+    ` : ''}
+  `;
+
+  bindBudgetDetailActions(b);
+}
+
+function renderBudgetTransactions(list) {
+  if (!list || list.length === 0) {
+    return '<div style="color:#999;text-align:center;padding:20px 0">暂无流水记录</div>';
+  }
+  const typeMap = {
+    allocate: { label: '分配额度', cls: 'type-allocate', sign: 1 },
+    adjust: { label: '手工调整', cls: 'type-adjust', sign: 0 },
+    freeze: { label: '冻结占用', cls: 'type-freeze', sign: -1 },
+    deduct: { label: '扣减已用', cls: 'type-deduct', sign: -1 },
+    release: { label: '释放回冲', cls: 'type-release', sign: 1 },
+    import: { label: 'CSV导入', cls: 'type-import', sign: 1 }
+  };
+  return list.map(t => {
+    const info = typeMap[t.type] || { label: t.type, cls: '', sign: 0 };
+    const amountClass = info.sign > 0 ? 'positive' : (info.sign < 0 ? 'negative' : '');
+    const amountPrefix = info.sign > 0 ? '+' : (info.sign < 0 ? '-' : '');
+    return `
+      <div class="budget-transaction-item ${info.cls}">
+        <div class="budget-transaction-header">
+          <span>${info.label}</span>
+          <span class="budget-transaction-amount ${amountClass}">
+            ${amountPrefix}¥${Number(Math.abs(t.amount)).toFixed(2)}
+          </span>
+        </div>
+        <div class="budget-transaction-desc">${t.remark || '-'}</div>
+        <div class="budget-transaction-time">
+          ${formatDate(t.operatedAt)} · ${t.operatorName || '系统'}
+          ${t.reimbursementId ? ` · 单据: ${t.reimbursementId}` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function bindBudgetDetailActions(b) {
+  document.querySelectorAll('[data-budget-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.budgetAction;
+      const version = parseInt(btn.dataset.version) || undefined;
+      handleBudgetAction(action, b, version);
+    });
+  });
+}
+
+async function handleBudgetAction(action, b, version) {
+  try {
+    switch (action) {
+      case 'adjust':
+        showAdjustBudgetModal(b, version);
+        break;
+      case 'edit':
+        showEditBudgetModal(b, version);
+        break;
+      case 'delete':
+        if (!confirm('确定要删除这个预算吗？此操作不可撤销。')) return;
+        await API.delete(`/api/budgets/${b.id}`);
+        toast('预算已删除', 'success');
+        currentBudgetId = null;
+        refreshAll();
+        renderBudgetDetailEmpty();
+        break;
+    }
+  } catch (e) {
+    if (e.message.includes('版本冲突')) {
+      toast(e.message + '，正在刷新...', 'error');
+      setTimeout(() => {
+        refreshAll();
+      }, 1500);
+    } else {
+      toast(e.message, 'error');
+    }
+  }
+}
+
+function showCreateBudgetModal() {
+  const now = new Date();
+  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const deptOptions = meta.departments.map(d =>
+    `<option value="${d.id}">${d.name}</option>`
+  ).join('');
+  const catOptions = meta.expenseCategories.map(c =>
+    `<option value="${c}">${c}</option>`
+  ).join('');
+
+  openModal('新建预算', `
+    <div class="form-group">
+      <label>预算月份</label>
+      <input type="month" id="f-budget-month" value="${defaultMonth}">
+    </div>
+    <div class="form-group">
+      <label>部门</label>
+      <select id="f-budget-dept">
+        ${deptOptions}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>费用科目</label>
+      <select id="f-budget-category">
+        ${catOptions}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>预算金额（元）</label>
+      <input type="number" id="f-budget-amount" step="0.01" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>备注（可选）</label>
+      <textarea id="f-budget-remark" placeholder="预算说明"></textarea>
+    </div>
+  `, () => {
+    const month = document.getElementById('f-budget-month').value;
+    const departmentId = document.getElementById('f-budget-dept').value;
+    const category = document.getElementById('f-budget-category').value;
+    const totalAmount = parseFloat(document.getElementById('f-budget-amount').value);
+    const remark = document.getElementById('f-budget-remark').value.trim();
+
+    if (!month) { toast('请选择预算月份', 'error'); return false; }
+    if (!departmentId) { toast('请选择部门', 'error'); return false; }
+    if (!category) { toast('请选择费用科目', 'error'); return false; }
+    if (!totalAmount || totalAmount < 0) { toast('请填写有效金额', 'error'); return false; }
+
+    API.post('/api/budgets', { month, departmentId, category, totalAmount, remark })
+      .then(() => {
+        toast('预算创建成功', 'success');
+        closeModal();
+        refreshAll();
+      })
+      .catch(e => {
+        toast(e.message, 'error');
+      });
+    return false;
+  }, '创建预算', 'btn-primary');
+}
+
+function showAdjustBudgetModal(b, version) {
+  openModal('调整预算额度', `
+    <p style="margin-bottom:12px;color:#666">
+      当前预算：<strong>${b.departmentName} - ${b.category}</strong><br>
+      当前额度：<strong>¥${Number(b.totalAmount).toFixed(2)}</strong>
+    </p>
+    <div class="form-group">
+      <label>调整方式</label>
+      <select id="adjust-type">
+        <option value="add">增加额度</option>
+        <option value="subtract">减少额度</option>
+        <option value="set">设置为</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>金额（元）</label>
+      <input type="number" id="adjust-amount" step="0.01" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>调整原因</label>
+      <textarea id="adjust-remark" placeholder="请说明调整原因"></textarea>
+    </div>
+  `, () => {
+    const adjustType = document.getElementById('adjust-type').value;
+    const inputAmount = parseFloat(document.getElementById('adjust-amount').value);
+    const remark = document.getElementById('adjust-remark').value.trim();
+
+    if (!inputAmount || inputAmount <= 0) {
+      toast('请填写有效金额', 'error');
+      return false;
+    }
+    if (!remark) {
+      toast('请填写调整原因', 'error');
+      return false;
+    }
+
+    let adjustmentAmount;
+    if (adjustType === 'add') {
+      adjustmentAmount = inputAmount;
+    } else if (adjustType === 'subtract') {
+      adjustmentAmount = -inputAmount;
+    } else {
+      adjustmentAmount = inputAmount - b.totalAmount;
+    }
+
+    API.post(`/api/budgets/${b.id}/adjust`, { adjustmentAmount, remark, version })
+      .then(() => {
+        toast('预算调整成功', 'success');
+        closeModal();
+        refreshAll();
+      })
+      .catch(e => {
+        toast(e.message, 'error');
+        if (e.message.includes('版本冲突')) {
+          setTimeout(() => { closeModal(); refreshAll(); }, 1500);
+        }
+      });
+    return false;
+  }, '确认调整', 'btn-primary');
+}
+
+function showEditBudgetModal(b, version) {
+  const deptOptions = meta.departments.map(d =>
+    `<option value="${d.id}" ${d.id === b.departmentId ? 'selected' : ''}>${d.name}</option>`
+  ).join('');
+  const catOptions = meta.expenseCategories.map(c =>
+    `<option value="${c}" ${c === b.category ? 'selected' : ''}>${c}</option>`
+  ).join('');
+
+  openModal('编辑预算信息', `
+    <div class="form-group">
+      <label>预算月份</label>
+      <input type="month" id="edit-budget-month" value="${b.month}">
+    </div>
+    <div class="form-group">
+      <label>部门</label>
+      <select id="edit-budget-dept">
+        ${deptOptions}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>费用科目</label>
+      <select id="edit-budget-category">
+        ${catOptions}
+      </select>
+    </div>
+    <p style="color:#999;font-size:12px;margin-top:8px">
+      注：修改基本信息不影响预算额度，调整额度请使用"调整额度"功能。
+    </p>
+  `, () => {
+    const month = document.getElementById('edit-budget-month').value;
+    const departmentId = document.getElementById('edit-budget-dept').value;
+    const category = document.getElementById('edit-budget-category').value;
+
+    if (!month) { toast('请选择预算月份', 'error'); return false; }
+
+    API.put(`/api/budgets/${b.id}`, { month, departmentId, category, version })
+      .then(() => {
+        toast('预算信息已更新', 'success');
+        closeModal();
+        refreshAll();
+      })
+      .catch(e => {
+        toast(e.message, 'error');
+        if (e.message.includes('版本冲突')) {
+          setTimeout(() => { closeModal(); refreshAll(); }, 1500);
+        }
+      });
+    return false;
+  }, '保存修改', 'btn-primary');
+}
+
+function showBudgetImportModal() {
+  openModal('CSV导入预算', `
+    <p style="margin-bottom:12px;color:#666">
+      请上传 CSV 文件，格式：月份,部门ID,部门名称,科目,金额
+    </p>
+    <div class="form-group">
+      <label>CSV 内容</label>
+      <textarea id="import-csv-content" rows="10" placeholder="月份,部门ID,部门名称,科目,金额
+2024-01,dept1,研发部,差旅费,50000
+2024-01,dept1,研发部,办公费,10000"></textarea>
+    </div>
+    <p style="color:#999;font-size:12px">
+      提示：第一行为标题行，将被跳过。相同月份+部门+科目的预算会被更新。
+    </p>
+  `, () => {
+    const csvContent = document.getElementById('import-csv-content').value.trim();
+    if (!csvContent) {
+      toast('请输入CSV内容', 'error');
+      return false;
+    }
+    API.post('/api/budgets/import', { csvContent })
+      .then(result => {
+        toast(`导入完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`,
+          result.failedCount > 0 ? 'info' : 'success');
+        closeModal();
+        refreshAll();
+      })
+      .catch(e => {
+        toast(e.message, 'error');
+      });
+    return false;
+  }, '开始导入', 'btn-success');
+}
+
+function exportBudgets() {
+  const params = new URLSearchParams();
+  if (budgetFilter.month) params.set('month', budgetFilter.month);
+  if (budgetFilter.departmentId) params.set('departmentId', budgetFilter.departmentId);
+  if (budgetFilter.category) params.set('category', budgetFilter.category);
+  const query = params.toString();
+  const url = '/api/budgets/export' + (query ? '?' + query : '');
+  const userId = getUserId();
+  fetch(url, { headers: { 'X-User-Id': userId } })
+    .then(res => res.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `budgets_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('预算导出成功', 'success');
+    })
+    .catch(e => toast(e.message, 'error'));
+}
+
+function exportBudgetTransactions() {
+  const params = new URLSearchParams();
+  if (budgetFilter.month) params.set('month', budgetFilter.month);
+  if (currentBudgetId) params.set('budgetId', currentBudgetId);
+  const query = params.toString();
+  const url = '/api/budget-transactions/export' + (query ? '?' + query : '');
+  const userId = getUserId();
+  fetch(url, { headers: { 'X-User-Id': userId } })
+    .then(res => res.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `budget_transactions_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('流水导出成功', 'success');
+    })
+    .catch(e => toast(e.message, 'error'));
+}
+
+async function reconcileBudgets() {
+  if (!confirm('确定要执行预算对账吗？这将重新计算所有预算的已用和冻结金额。')) return;
+  try {
+    const result = await API.post('/api/budgets/reconcile');
+    toast(`对账完成：检查 ${result.checkedCount} 条，修复 ${result.fixedCount} 条`, 'success');
+    refreshAll();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
 }
 
 async function resetData() {

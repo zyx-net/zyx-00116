@@ -1,6 +1,12 @@
 const store = require('./store');
+const budgetService = require('./budget-service');
 
-const { STATUS, STATUS_LABEL, USERS, loadData, saveData, genId, nowISO, addDays, isOverdue, matchAttachmentToMissing, normalizeSupplementRound } = store;
+const {
+  STATUS, STATUS_LABEL, USERS, DEPARTMENT_LABEL,
+  loadData, saveData, genId, nowISO, addDays, isOverdue,
+  getMonthFromDate, getCurrentMonth,
+  matchAttachmentToMissing, normalizeSupplementRound
+} = store;
 
 function parseCycleFromRemark(remark) {
   if (!remark) return null;
@@ -112,17 +118,23 @@ function decorateReimbursement(r) {
   const pendingConfirm = r.status === STATUS.PENDING_SUPPLEMENT
     && (r.missingAttachments || []).length === 0;
   const supplementRounds = buildSupplementRounds(r, data);
+  const departmentId = applicant?.departmentId || '';
+  const departmentName = departmentId ? (DEPARTMENT_LABEL[departmentId] || departmentId) : '';
+  const budgetStatus = budgetService.getReimbursementBudgetStatus(r.id);
   return {
     ...r,
     statusLabel: pendingConfirm ? '待确认' : STATUS_LABEL[r.status],
     applicantName: applicant ? applicant.name : '未知',
+    applicantDepartmentId: departmentId,
+    applicantDepartmentName: departmentName,
     reminderCount: reminders.length,
     remindCount: totalRemindCount,
     lastReminderAt: reminders.length > 0 ? reminders[reminders.length - 1].remindedAt : null,
     lastSupplementAt: r.lastSupplementAt || null,
     pendingConfirm,
     overdue,
-    supplementRounds
+    supplementRounds,
+    budgetStatus
   };
 }
 
@@ -164,13 +176,21 @@ function checkVersion(r, expectedVersion) {
 
 function createReimbursement(payload, operatorId) {
   const data = loadData();
+  const applicant = USERS.find(u => u.id === operatorId);
+  if (!applicant) throw new Error('用户不存在');
+
+  const departmentId = applicant.departmentId || '';
+  const amount = Number(payload.amount);
+  const category = payload.type || '差旅费';
+  const budgetMonth = getMonthFromDate(nowISO());
+
   const id = genId(data, 'BX');
   const now = nowISO();
   const r = {
     id,
     title: payload.title,
-    amount: payload.amount,
-    type: payload.type || '差旅费',
+    amount,
+    type: category,
     description: payload.description || '',
     applicantId: operatorId,
     status: STATUS.PENDING_AUDIT,
@@ -187,6 +207,15 @@ function createReimbursement(payload, operatorId) {
   };
   data.reimbursements.push(r);
   logOperation(data, id, operatorId, 'create', '创建报销单');
+
+  try {
+    budgetService._freezeBudgetInternal(
+      data, id, amount, budgetMonth, departmentId, category, operatorId
+    );
+  } catch (e) {
+    throw new Error(`预算冻结失败：${e.message}`);
+  }
+
   saveData(data);
   return getReimbursement(id);
 }
@@ -257,6 +286,19 @@ function auditReject(id, operatorId, reason, expectedVersion) {
     logOperation(data, id, operatorId, 'round_status_change',
       `[第${currentCycle}轮] 轮次状态变更：→ confirmed_rejected，驳回人：${op ? op.name : '未知'}，原因：${reason}`);
   }
+
+  try {
+    const releaseResult = budgetService._releaseBudgetInternal(
+      data, id, `驳回，原因：${reason}`, operatorId
+    );
+    if (releaseResult.isNew) {
+      logOperation(data, id, operatorId, 'budget_release',
+        `预算已释放：金额 ${r.amount.toFixed(2)} 元，原因：驳回`);
+    }
+  } catch (e) {
+    throw new Error(`预算释放失败：${e.message}`);
+  }
+
   saveData(data);
   return getReimbursement(id);
 }
@@ -617,7 +659,93 @@ function auditApprove(id, operatorId, expectedVersion) {
     r.status = STATUS.APPROVED;
     bumpVersion(r);
     logOperation(data, id, operatorId, 'approve_finance', '财务复核通过');
+
+    try {
+      const deductResult = budgetService._deductBudgetInternal(data, id, operatorId);
+      if (deductResult.isNew) {
+        logOperation(data, id, operatorId, 'budget_deduct',
+          `预算已扣减：金额 ${r.amount.toFixed(2)} 元`);
+      }
+    } catch (e) {
+      throw new Error(`预算扣减失败：${e.message}`);
+    }
   }
+  saveData(data);
+  return getReimbursement(id);
+}
+
+function withdrawReimbursement(id, operatorId, reason, expectedVersion) {
+  const data = loadData();
+  const r = data.reimbursements.find(x => x.id === id);
+  if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
+  assertRole(operatorId, ['applicant']);
+  if (r.applicantId !== operatorId) {
+    throw new Error('仅申请人可撤销自己的报销单');
+  }
+  assertStatus(r, [STATUS.PENDING_AUDIT, STATUS.PENDING_REVIEW, STATUS.PENDING_SUPPLEMENT],
+    '仅待审核、待复核、待补件状态可撤销');
+
+  r.status = STATUS.WITHDRAWN;
+  r.withdrawReason = reason || '';
+  r.withdrawnAt = nowISO();
+  r.withdrawnBy = operatorId;
+  bumpVersion(r);
+
+  logOperation(data, id, operatorId, 'withdraw',
+    `申请人撤销报销单${reason ? `，原因：${reason}` : ''}`);
+
+  try {
+    const releaseResult = budgetService._releaseBudgetInternal(
+      data, id, reason ? `申请人撤销，原因：${reason}` : '申请人撤销', operatorId
+    );
+    if (releaseResult.isNew) {
+      logOperation(data, id, operatorId, 'budget_release',
+        `预算已释放：金额 ${r.amount.toFixed(2)} 元，原因：申请人撤销`);
+    }
+  } catch (e) {
+    throw new Error(`预算释放失败：${e.message}`);
+  }
+
+  saveData(data);
+  return getReimbursement(id);
+}
+
+function resubmitReimbursement(id, operatorId, expectedVersion) {
+  const data = loadData();
+  const r = data.reimbursements.find(x => x.id === id);
+  if (!r) throw new Error('报销单不存在');
+  checkVersion(r, expectedVersion);
+  assertRole(operatorId, ['applicant']);
+  if (r.applicantId !== operatorId) {
+    throw new Error('仅申请人可重提自己的报销单');
+  }
+  assertStatus(r, [STATUS.WITHDRAWN, STATUS.REJECTED],
+    '仅已撤销、已驳回状态可重提');
+
+  const applicant = USERS.find(u => u.id === operatorId);
+  const departmentId = applicant?.departmentId || '';
+  const budgetMonth = getMonthFromDate(r.createdAt || nowISO());
+  const category = r.type;
+  const amount = Number(r.amount);
+
+  try {
+    budgetService._freezeBudgetInternal(
+      data, id, amount, budgetMonth, departmentId, category, operatorId
+    );
+  } catch (e) {
+    throw new Error(`预算冻结失败：${e.message}`);
+  }
+
+  r.status = STATUS.PENDING_AUDIT;
+  r.rejectReason = null;
+  r.withdrawReason = null;
+  r.withdrawnAt = null;
+  r.withdrawnBy = null;
+  bumpVersion(r);
+
+  logOperation(data, id, operatorId, 'resubmit', '重新提交报销单');
+
   saveData(data);
   return getReimbursement(id);
 }
@@ -699,10 +827,15 @@ function exportArchive(id) {
     };
   });
 
+  const budgetStatus = budgetService.getReimbursementBudgetStatus(id);
+  const budgetTransactions = budgetService.listBudgetTransactions({ reimbursementId: id });
+
   return {
     reimbursement: {
       ...r,
       applicantName: applicant ? applicant.name : '未知',
+      applicantDepartmentId: decorate.applicantDepartmentId,
+      applicantDepartmentName: decorate.applicantDepartmentName,
       statusLabel: STATUS_LABEL[r.status],
       remindCount: decorate.remindCount,
       reminderCount: decorate.reminderCount,
@@ -720,6 +853,10 @@ function exportArchive(id) {
       totalRemindCount: decorate.remindCount,
       supplementLogsCount: supplementLogs.length,
       cycles: exportRounds
+    },
+    budgetInfo: {
+      status: budgetStatus,
+      transactions: budgetTransactions
     }
   };
 }
@@ -729,6 +866,9 @@ function resetAll() {
     reimbursements: [],
     reminders: [],
     operationLogs: [],
+    budgets: [],
+    budgetFreezes: [],
+    budgetTransactions: [],
     seq: 1000
   };
   saveData(data);
@@ -749,6 +889,8 @@ module.exports = {
   listSupplementTasks,
   submitSupplement,
   auditApprove,
+  withdrawReimbursement,
+  resubmitReimbursement,
   archive,
   exportArchive,
   resetAll,

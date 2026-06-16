@@ -10,7 +10,8 @@ const STATUS = {
   PENDING_REVIEW: 'pending_review',
   APPROVED: 'approved',
   REJECTED: 'rejected',
-  ARCHIVED: 'archived'
+  ARCHIVED: 'archived',
+  WITHDRAWN: 'withdrawn'
 };
 
 const STATUS_LABEL = {
@@ -19,29 +20,73 @@ const STATUS_LABEL = {
   pending_review: '待复核',
   approved: '已通过',
   rejected: '已驳回',
-  archived: '已归档'
+  archived: '已归档',
+  withdrawn: '已撤销'
+};
+
+const DEPARTMENTS = [
+  { id: 'dept1', name: '研发部' },
+  { id: 'dept2', name: '市场部' },
+  { id: 'dept3', name: '财务部' },
+  { id: 'dept4', name: '行政部' }
+];
+
+const DEPARTMENT_LABEL = {
+  dept1: '研发部',
+  dept2: '市场部',
+  dept3: '财务部',
+  dept4: '行政部'
 };
 
 const ROLES = {
   APPLICANT: 'applicant',
   AUDITOR: 'auditor',
   FINANCE: 'finance',
-  ARCHIVER: 'archiver'
+  ARCHIVER: 'archiver',
+  ADMIN: 'admin'
 };
 
 const ROLE_LABEL = {
   applicant: '申请人',
   auditor: '审核员',
   finance: '财务复核员',
-  archiver: '归档员'
+  archiver: '归档员',
+  admin: '管理员'
 };
 
 const USERS = [
-  { id: 'u1', username: 'zhangsan', name: '张三', role: 'applicant', password: '123456' },
-  { id: 'u2', username: 'lisi', name: '李四', role: 'auditor', password: '123456' },
-  { id: 'u3', username: 'wangwu', name: '王五', role: 'finance', password: '123456' },
-  { id: 'u4', username: 'zhaoliu', name: '赵六', role: 'archiver', password: '123456' }
+  { id: 'u1', username: 'zhangsan', name: '张三', role: 'applicant', departmentId: 'dept1', password: '123456' },
+  { id: 'u2', username: 'lisi', name: '李四', role: 'auditor', departmentId: 'dept1', password: '123456' },
+  { id: 'u3', username: 'wangwu', name: '王五', role: 'finance', departmentId: 'dept3', password: '123456' },
+  { id: 'u4', username: 'zhaoliu', name: '赵六', role: 'archiver', departmentId: 'dept4', password: '123456' },
+  { id: 'u5', username: 'admin', name: '系统管理员', role: 'admin', departmentId: 'dept3', password: '123456' }
 ];
+
+const EXPENSE_CATEGORIES = ['差旅费', '办公费', '招待费', '通讯费', '交通费', '培训费', '其他'];
+
+const BUDGET_TRANSACTION_TYPES = {
+  ALLOCATE: 'allocate',
+  ADJUST: 'adjust',
+  FREEZE: 'freeze',
+  DEDUCT: 'deduct',
+  RELEASE: 'release',
+  IMPORT: 'import'
+};
+
+const BUDGET_TRANSACTION_TYPE_LABEL = {
+  allocate: '分配额度',
+  adjust: '手工调整',
+  freeze: '冻结占用',
+  deduct: '扣减已用',
+  release: '释放回冲',
+  import: 'CSV导入'
+};
+
+const BUDGET_FREEZE_STATUS = {
+  FROZEN: 'frozen',
+  DEDUCTED: 'deducted',
+  RELEASED: 'released'
+};
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -101,7 +146,10 @@ function normalizeReimbursement(r) {
     updatedAt: r.updatedAt || now,
     version: r.version || 1,
     archivedAt: r.archivedAt || null,
-    archivedBy: r.archivedBy || null
+    archivedBy: r.archivedBy || null,
+    withdrawReason: r.withdrawReason || null,
+    withdrawnAt: r.withdrawnAt || null,
+    withdrawnBy: r.withdrawnBy || null
   };
 }
 
@@ -137,6 +185,56 @@ function normalizeOperationLog(log) {
   };
 }
 
+function normalizeBudget(b) {
+  const now = nowISO();
+  return {
+    id: b.id || '',
+    month: b.month || '',
+    departmentId: b.departmentId || '',
+    departmentName: b.departmentName || '',
+    category: b.category || '',
+    totalAmount: Number(b.totalAmount) || 0,
+    usedAmount: Number(b.usedAmount) || 0,
+    frozenAmount: Number(b.frozenAmount) || 0,
+    version: Number(b.version) || 1,
+    createdAt: b.createdAt || now,
+    updatedAt: b.updatedAt || now
+  };
+}
+
+function normalizeBudgetFreeze(f) {
+  const now = nowISO();
+  return {
+    id: f.id || '',
+    reimbursementId: f.reimbursementId || '',
+    budgetId: f.budgetId || '',
+    month: f.month || '',
+    departmentId: f.departmentId || '',
+    category: f.category || '',
+    amount: Number(f.amount) || 0,
+    status: f.status || BUDGET_FREEZE_STATUS.FROZEN,
+    frozenAt: f.frozenAt || now,
+    updatedAt: f.updatedAt || now,
+    version: Number(f.version) || 1
+  };
+}
+
+function normalizeBudgetTransaction(t) {
+  const now = nowISO();
+  return {
+    id: t.id || '',
+    budgetId: t.budgetId || '',
+    reimbursementId: t.reimbursementId || '',
+    type: t.type || '',
+    amount: Number(t.amount) || 0,
+    balanceAfter: Number(t.balanceAfter) || 0,
+    operatorId: t.operatorId || '',
+    operatorName: t.operatorName || '未知',
+    remark: t.remark || '',
+    operatedAt: t.operatedAt || now
+  };
+}
+
 function normalizeData(data) {
   if (!data) {
     data = { reimbursements: [], reminders: [], operationLogs: [], seq: 1000 };
@@ -145,6 +243,9 @@ function normalizeData(data) {
     reimbursements: (data.reimbursements || []).map(normalizeReimbursement),
     reminders: (data.reminders || []).map(normalizeReminder),
     operationLogs: (data.operationLogs || []).map(normalizeOperationLog),
+    budgets: (data.budgets || []).map(normalizeBudget),
+    budgetFreezes: (data.budgetFreezes || []).map(normalizeBudgetFreeze),
+    budgetTransactions: (data.budgetTransactions || []).map(normalizeBudgetTransaction),
     seq: data.seq || 1000
   };
 }
@@ -156,6 +257,9 @@ function loadData() {
       reimbursements: [],
       reminders: [],
       operationLogs: [],
+      budgets: [],
+      budgetFreezes: [],
+      budgetTransactions: [],
       seq: 1000
     };
     fs.writeFileSync(DATA_FILE, JSON.stringify(initial, null, 2), 'utf8');
@@ -163,6 +267,18 @@ function loadData() {
   }
   const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   return normalizeData(raw);
+}
+
+function getMonthFromDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function getCurrentMonth() {
+  return getMonthFromDate(new Date().toISOString());
 }
 
 function saveData(data) {
@@ -215,10 +331,16 @@ function matchAttachmentToMissing(attachments, missingItems) {
 }
 
 module.exports = {
-  STATUS, STATUS_LABEL, ROLES, ROLE_LABEL, USERS,
+  STATUS, STATUS_LABEL,
+  ROLES, ROLE_LABEL, USERS,
+  DEPARTMENTS, DEPARTMENT_LABEL,
+  EXPENSE_CATEGORIES,
+  BUDGET_TRANSACTION_TYPES, BUDGET_TRANSACTION_TYPE_LABEL,
+  BUDGET_FREEZE_STATUS,
   loadData, saveData, genId, nowISO, addDays, isOverdue,
+  getMonthFromDate, getCurrentMonth,
   matchAttachmentToMissing,
   normalizeData, normalizeReimbursement, normalizeReminder, normalizeOperationLog,
-  normalizeSupplementRound,
+  normalizeSupplementRound, normalizeBudget, normalizeBudgetFreeze, normalizeBudgetTransaction,
   DATA_DIR, DATA_FILE
 };

@@ -39,8 +39,10 @@
             <div class="tab-switcher">
               <div class="tab-item active" data-tab="list">📋 报销单列表</div>
               <div class="tab-item" data-tab="tasks">⏰ 补件任务</div>
+              <div class="tab-item" data-tab="budgets" id="budgetTab" style="display:none">💰 预算管理</div>
             </div>
             <button class="btn btn-primary" id="createBtn" style="display:none">+ 新建报销单</button>
+            <button class="btn btn-primary" id="createBudgetBtn" style="display:none">+ 新建预算</button>
           </div>
           <div class="list-container" id="listContainer">
             <div class="empty-state">加载中...</div>
@@ -62,6 +64,59 @@
               </div>
             </div>
             <div class="task-list" id="taskListContainer">
+              <div class="empty-state">加载中...</div>
+            </div>
+          </div>
+          <div class="budget-panel" id="budgetPanel" style="display:none">
+            <div class="budget-filter">
+              <div class="filter-item">
+                <label>月份</label>
+                <input type="month" id="budgetMonthFilter">
+              </div>
+              <div class="filter-item">
+                <label>部门</label>
+                <select id="budgetDeptFilter">
+                  <option value="">全部</option>
+                </select>
+              </div>
+              <div class="filter-item">
+                <label>科目</label>
+                <select id="budgetCategoryFilter">
+                  <option value="">全部</option>
+                </select>
+              </div>
+              <div class="filter-item filter-actions">
+                <button class="btn btn-primary btn-sm" id="budgetSearchBtn">🔍 查询</button>
+                <button class="btn btn-secondary btn-sm" id="budgetResetBtn">重置</button>
+              </div>
+            </div>
+            <div class="budget-toolbar">
+              <div class="budget-summary">
+                <span class="summary-item">
+                  <span class="summary-label">预算总额</span>
+                  <span class="summary-value" id="budgetTotalAmount">¥0.00</span>
+                </span>
+                <span class="summary-item">
+                  <span class="summary-label">已冻结</span>
+                  <span class="summary-value frozen" id="budgetFrozenAmount">¥0.00</span>
+                </span>
+                <span class="summary-item">
+                  <span class="summary-label">已扣减</span>
+                  <span class="summary-value deducted" id="budgetDeductedAmount">¥0.00</span>
+                </span>
+                <span class="summary-item">
+                  <span class="summary-label">可用余额</span>
+                  <span class="summary-value available" id="budgetAvailableAmount">¥0.00</span>
+                </span>
+              </div>
+              <div class="budget-actions">
+                <button class="btn btn-success btn-sm" id="budgetImportBtn">📥 CSV导入</button>
+                <button class="btn btn-primary btn-sm" id="budgetExportBtn">📤 预算导出</button>
+                <button class="btn btn-info btn-sm" id="budgetTxExportBtn">📤 流水导出</button>
+                <button class="btn btn-warning btn-sm" id="budgetReconcileBtn">🔄 预算对账</button>
+              </div>
+            </div>
+            <div class="budget-list" id="budgetListContainer">
               <div class="empty-state">加载中...</div>
             </div>
           </div>

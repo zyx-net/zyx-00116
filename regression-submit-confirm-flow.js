@@ -8,6 +8,26 @@ function resetAll() {
   service.resetAll();
 }
 
+function setupTestBudgets() {
+  const budgetService = require('./budget-service');
+  const { getCurrentMonth } = store;
+  const month = getCurrentMonth();
+  const deptId = 'dept1';
+
+  try {
+    budgetService.createBudget({ month, departmentId: deptId, category: '差旅费', totalAmount: 50000 }, 'u5');
+  } catch (e) {}
+  try {
+    budgetService.createBudget({ month, departmentId: deptId, category: '办公费', totalAmount: 20000 }, 'u5');
+  } catch (e) {}
+  try {
+    budgetService.createBudget({ month, departmentId: deptId, category: '培训费', totalAmount: 30000 }, 'u5');
+  } catch (e) {}
+  try {
+    budgetService.createBudget({ month, departmentId: deptId, category: '招待费', totalAmount: 10000 }, 'u5');
+  } catch (e) {}
+}
+
 function newAtt(id, name, category) {
   return { id, name, category, size: '100KB', uploadedAt: nowISO() };
 }
@@ -263,6 +283,7 @@ async function main() {
   console.log('='.repeat(70));
 
   resetAll();
+  setupTestBudgets();
 
   test('Step 1: 创建报销单', () => {
     const r = service.createReimbursement({
@@ -320,7 +341,7 @@ async function main() {
   test('Step 8: 验证操作日志完整链路', () => {
     const detail = service.getReimbursementDetail(testId);
     const logs = detail.operationLogs;
-    const coreActions = logs.filter(l => l.action !== 'round_status_change').map(l => l.action).reverse();
+    const coreActions = logs.filter(l => l.action !== 'round_status_change' && !l.action.startsWith('budget_')).map(l => l.action).reverse();
 
     assertEqual(coreActions[0], 'create', '第1步：创建');
     assertEqual(coreActions[1], 'approve_audit', '第2步：初审通过');
