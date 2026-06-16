@@ -1,6 +1,6 @@
 const store = require('./store');
 
-const { STATUS, STATUS_LABEL, USERS, loadData, saveData, genId, nowISO, addDays, isOverdue } = store;
+const { STATUS, STATUS_LABEL, USERS, loadData, saveData, genId, nowISO, addDays, isOverdue, matchAttachmentToMissing } = store;
 
 function listReimbursements(filter = {}) {
   const data = loadData();
@@ -134,8 +134,9 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
   r.status = STATUS.PENDING_SUPPLEMENT;
   r.missingAttachments = missing;
   r.supplementCycle = (r.supplementCycle || 0) + 1;
-  r.deadline = addDays(nowISO(), deadlineDays);
-  r.updatedAt = nowISO();
+  const now = nowISO();
+  r.deadline = addDays(now, deadlineDays);
+  r.updatedAt = now;
   const op = USERS.find(u => u.id === operatorId);
   logOperation(data, id, operatorId, 'request_supplement',
     `发起补件，缺失：${missing.join('、')}，截止：${r.deadline.slice(0, 10)}`);
@@ -147,7 +148,8 @@ function auditRequestSupplement(id, operatorId, missingAttachments, deadlineDays
     operatorName: op ? op.name : '未知',
     message: `请补充以下附件：${missing.join('、')}`,
     deadline: r.deadline,
-    remindedAt: nowISO(),
+    remindedAt: now,
+    lastRemindedAt: now,
     remindCount: 1
   };
   data.reminders.push(reminder);
@@ -164,11 +166,13 @@ function remindAgain(id, operatorId) {
   const cycle = r.supplementCycle;
   let reminder = data.reminders.find(rm => rm.reimbursementId === id && rm.cycle === cycle);
   const op = USERS.find(u => u.id === operatorId);
+  const now = nowISO();
   if (reminder) {
     reminder.remindCount += 1;
-    reminder.lastRemindBy = op ? op.name : '未知';
+    reminder.lastRemindedBy = op ? op.name : '未知';
+    reminder.lastRemindedAt = now;
     logOperation(data, id, operatorId, 'remind_again',
-      `第${reminder.remindCount}次催办（同一补件周期，历史合并）`);
+      `第${reminder.remindCount}次催办（同一补件周期，历史合并，首次催办时间保留）`);
   } else {
     reminder = {
       id: genId('RM'),
@@ -178,13 +182,13 @@ function remindAgain(id, operatorId) {
       operatorName: op ? op.name : '未知',
       message: '请尽快补充材料',
       deadline: r.deadline,
-      remindedAt: nowISO(),
+      remindedAt: now,
+      lastRemindedAt: now,
       remindCount: 1
     };
     data.reminders.push(reminder);
     logOperation(data, id, operatorId, 'remind_again', '首次催办');
   }
-  reminder.remindedAt = nowISO();
   r.updatedAt = nowISO();
   saveData(data);
   return reminder;
@@ -200,11 +204,21 @@ function submitSupplement(id, operatorId, newAttachments) {
   }
   assertStatus(r, [STATUS.PENDING_SUPPLEMENT], '仅待补件状态可提交补充材料');
   const newAtts = Array.isArray(newAttachments) ? newAttachments : [];
+  if (newAtts.length === 0) {
+    throw new Error('请至少上传一个补件附件');
+  }
+  const required = r.missingAttachments || [];
+  const { unmatched, matched } = matchAttachmentToMissing(newAtts, required);
+  if (unmatched.length > 0) {
+    const matchedNames = matched.map(m => `${m.missing} ← ${m.attachment.name}`).join('、');
+    throw new Error(`仍有指定材料未补齐：${unmatched.join('、')}。本次匹配到：${matchedNames || '无'}。请上传与要求完全匹配的附件，同名重复上传无效。`);
+  }
   r.attachments = [...r.attachments, ...newAtts];
+  r.missingAttachments = [];
   r.status = STATUS.PENDING_REVIEW;
   r.updatedAt = nowISO();
   logOperation(data, id, operatorId, 'submit_supplement',
-    `补充附件：${newAtts.map(a => a.name).join('、') || '无'}`);
+    `补齐全部缺失材料：${matched.map(m => m.missing).join('、')}，提交附件：${newAtts.map(a => a.name).join('、')}`);
   saveData(data);
   return getReimbursement(id);
 }
@@ -223,11 +237,9 @@ function auditApprove(id, operatorId) {
     throw new Error('当前状态不允许审批通过');
   }
   if (r.missingAttachments && r.missingAttachments.length > 0) {
-    const missing = r.missingAttachments.filter(m => {
-      return !r.attachments.some(a => a.category === m || a.name.includes(m));
-    });
-    if (missing.length > 0) {
-      throw new Error(`仍有缺失附件未补充：${missing.join('、')}，不允许审批通过`);
+    const { unmatched } = matchAttachmentToMissing(r.attachments, r.missingAttachments);
+    if (unmatched.length > 0) {
+      throw new Error(`仍有缺失附件未补充：${unmatched.join('、')}，不允许审批通过`);
     }
   }
   if (r.status === STATUS.PENDING_AUDIT) {

@@ -92,8 +92,33 @@ function isOverdue(deadline) {
   return new Date() > new Date(deadline);
 }
 
+function matchAttachmentToMissing(attachments, missingItems) {
+  if (!missingItems || missingItems.length === 0) return { matched: [], unmatched: [] };
+  const usedAttIds = new Set();
+  const matched = [];
+  const unmatched = [];
+  for (const m of missingItems) {
+    let found = null;
+    for (const a of attachments) {
+      if (usedAttIds.has(a.id)) continue;
+      if (a.category === m || (a.name && a.name.includes(m))) {
+        found = a;
+        break;
+      }
+    }
+    if (found) {
+      usedAttIds.add(found.id);
+      matched.push({ missing: m, attachment: found });
+    } else {
+      unmatched.push(m);
+    }
+  }
+  return { matched, unmatched, usedAttIds };
+}
+
 module.exports = {
   STATUS, STATUS_LABEL, ROLES, ROLE_LABEL, USERS,
   loadData, saveData, genId, nowISO, addDays, isOverdue,
+  matchAttachmentToMissing,
   DATA_DIR, DATA_FILE
 };

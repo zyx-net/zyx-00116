@@ -308,11 +308,14 @@ function renderReminders(list) {
           ${r.operatorName}
           <span class="reminder-count">第 ${r.remindCount} 次催办</span>
         </span>
-        <span class="reminder-time">${formatDate(r.remindedAt)}</span>
+        <span class="reminder-time">${formatDate(r.lastRemindedAt || r.remindedAt)}</span>
       </div>
       <div class="reminder-msg">${r.message}</div>
       <div style="margin-top:6px;font-size:12px;color:#999">
         补件轮次：第 ${r.cycle} 轮 · 截止：${formatDate(r.deadline)}
+      </div>
+      <div style="margin-top:4px;font-size:11px;color:#1890ff">
+        首次催办：${formatDate(r.remindedAt)} ${r.lastRemindedAt && r.lastRemindedAt !== r.remindedAt ? `· 最新催办：${formatDate(r.lastRemindedAt)}` : ''}
       </div>
     </div>
   `).join('');

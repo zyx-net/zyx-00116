@@ -143,6 +143,7 @@ function seed() {
     message: '请补充以下附件：发票、入库单',
     deadline: r2.deadline,
     remindedAt: now,
+    lastRemindedAt: now,
     remindCount: 2
   };
   data.reminders = [reminder];
