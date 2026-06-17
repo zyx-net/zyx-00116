@@ -1317,3 +1317,337 @@ body {
   padding-top: 12px;
   border-top: 1px solid #f0f0f0;
 }
+
+.acceptance-panel {
+  padding: 16px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.acceptance-toolbar {
+  margin-bottom: 16px;
+}
+
+.acceptance-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.acc-card {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.acc-card-label {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.acc-card-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1890ff;
+  margin-bottom: 4px;
+}
+
+.acc-card-sub {
+  font-size: 11px;
+  color: #bbb;
+}
+
+.acceptance-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.acceptance-section {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+.config-status {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.config-status.complete {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+}
+
+.config-status.incomplete {
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  color: #fa8c16;
+}
+
+.config-missing, .config-zero {
+  margin-top: 12px;
+}
+
+.config-missing-title, .config-zero-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.config-missing-list, .config-zero-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 6px;
+}
+
+.config-item {
+  padding: 8px 10px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.config-zero-item {
+  padding: 8px 10px;
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.config-item-suggestion {
+  color: #999;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.import-batches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.batch-item {
+  padding: 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.batch-item:hover {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.batch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.batch-no {
+  font-weight: 600;
+  color: #333;
+  font-size: 13px;
+}
+
+.batch-time {
+  font-size: 11px;
+  color: #999;
+}
+
+.batch-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.batch-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.batch-stat .label { color: #999; }
+.batch-stat .success { color: #52c41a; font-weight: 600; }
+.batch-stat .skipped { color: #faad14; font-weight: 600; }
+.batch-stat .rejected { color: #eb2f96; font-weight: 600; }
+.batch-stat .failed { color: #ff4d4f; font-weight: 600; }
+.batch-stat .amount { color: #1890ff; font-weight: 600; }
+
+.import-details-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: #1890ff;
+}
+
+.tab-btn.active {
+  color: #1890ff;
+  border-bottom-color: #1890ff;
+  font-weight: 600;
+}
+
+.tab-btn span {
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.import-details-content {
+  min-height: 100px;
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  align-items: center;
+}
+
+.detail-item.success-item {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+.detail-item.skipped-item {
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+}
+
+.detail-item.rejected-item {
+  background: #fff0f6;
+  border: 1px solid #ffadd2;
+}
+
+.detail-item.failed-item {
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+}
+
+.detail-line {
+  color: #999;
+  font-family: monospace;
+}
+
+.detail-key {
+  color: #333;
+}
+
+.detail-extra {
+  text-align: right;
+  color: #666;
+}
+
+.detail-extra .amount {
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.consistency-check {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.consistency-input {
+  display: flex;
+  gap: 8px;
+}
+
+.consistency-input input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.consistency-result {
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.consistency-result.valid {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+}
+
+.consistency-result.invalid {
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #ff4d4f;
+}
+
+.consistency-issues {
+  margin-top: 8px;
+  padding-left: 16px;
+}
+
+.consistency-issues li {
+  margin: 4px 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.summary-stat.rejected .stat-value {
+  color: #eb2f96;
+}

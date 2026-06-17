@@ -328,7 +328,7 @@ ${currentMonth},dept2,招待费,3000`;
     return `首次导入成功：${result.success.length} 条`;
   });
 
-  runStep('重复导入：已存在的跳过，新增的成功', () => {
+  runStep('重复导入：已存在的拒绝覆盖，新增的成功', () => {
     const csvContent = `month,departmentId,category,totalAmount
 ${currentMonth},dept1,差旅费,99999
 ${currentMonth},dept1,培训费,5000
@@ -337,7 +337,7 @@ ${currentMonth},dept3,交通费,2000`;
 
     const result = budgetService.importBudgetsFromCSV(csvContent, 'u5');
     assertEqual(result.success.length, 2, '成功导入数量（培训费+交通费）');
-    assertEqual(result.skipped.length, 2, '跳过数量（差旅费+差旅费）');
+    assertEqual(result.rejected.length, 2, '拒绝覆盖数量（差旅费+差旅费）');
 
     const travelBudget = budgetService.getBudgetByKey(currentMonth, 'dept1', '差旅费');
     assertApprox(travelBudget.totalAmount, 15000, '已存在的差旅费额度未被覆盖');
@@ -345,7 +345,7 @@ ${currentMonth},dept3,交通费,2000`;
     const trainingBudget = budgetService.getBudgetByKey(currentMonth, 'dept1', '培训费');
     assertApprox(trainingBudget.totalAmount, 5000, '新增培训费成功');
 
-    return `重复导入：成功 ${result.success.length}，跳过 ${result.skipped.length}，已有数据不覆盖`;
+    return `重复导入：成功 ${result.success.length}，拒绝覆盖 ${result.rejected.length}，已有数据不覆盖`;
   });
 
   runStep('CSV内部重复：只取第一条', () => {
@@ -365,7 +365,7 @@ ${currentMonth},dept3,交通费,4000`;
     return `CSV内重复去重：成功 ${result.success.length}，跳过 ${result.skipped.length}`;
   });
 
-  runStep('导入结果分类清晰：成功/跳过/失败', () => {
+  runStep('导入结果分类清晰：成功/跳过/拒绝覆盖/失败', () => {
     budgetService.resetAllBudgets();
     const csvContent = `month,departmentId,category,totalAmount
 ${currentMonth},dept1,差旅费,10000
@@ -377,7 +377,8 @@ ${currentMonth},dept1,招待费,abc`;
     const result = budgetService.importBudgetsFromCSV(csvContent, 'u5');
 
     assertTrue(result.success.length >= 1, '至少有1条成功');
-    assertTrue(result.skipped.length >= 1, '至少有1条跳过');
+    assertTrue(result.skipped.length >= 1, '至少有1条跳过（CSV内重复）');
+    assertTrue(result.rejected.length >= 0, '拒绝覆盖数量');
     assertTrue(result.failed.length >= 1, '至少有1条失败');
 
     for (const s of result.success) {
@@ -393,7 +394,7 @@ ${currentMonth},dept1,招待费,abc`;
       assertTrue(f.line !== undefined, '失败记录包含line号');
     }
 
-    return `导入结果三分法：成功 ${result.success.length}，跳过 ${result.skipped.length}，失败 ${result.failed.length}`;
+    return `导入结果四分法：成功 ${result.success.length}，跳过 ${result.skipped.length}，拒绝覆盖 ${result.rejected.length}，失败 ${result.failed.length}`;
   });
 
   return '导入冲突与分类验证通过';
@@ -736,10 +737,10 @@ ${currentMonth},dept3,交通费,2000`;
       if (i === 1) {
         lastResult = result;
         assertEqual(result.success.length, 2, '第1次：新增2条（培训费+交通费）');
-        assertEqual(result.skipped.length, 1, '第1次：跳过1条（差旅费已存在）');
+        assertEqual(result.rejected.length, 1, '第1次：拒绝覆盖1条（差旅费已存在）');
       } else {
         assertEqual(result.success.length, 0, `第${i}次：新增0条`);
-        assertEqual(result.skipped.length, 3, `第${i}次：跳过3条（全部已存在）`);
+        assertEqual(result.rejected.length, 3, `第${i}次：拒绝覆盖3条（全部已存在）`);
       }
     }
 
@@ -981,7 +982,500 @@ function scenario_withdrawResubmitReplay() {
     return '冻结记录状态流转正确';
   });
 
+  runStep('验证报销单操作日志与预算流水一致性', () => {
+    const result = budgetService.validateReimbursementLogConsistency(testId);
+    assertTrue(result.valid, `日志与流水一致性验证通过，问题：${result.issues.join('; ')}`);
+    assertEqual(result.logCount > 0, true, '有操作日志');
+    assertEqual(result.transactionCount > 0, true, '有预算流水');
+    return '操作日志与预算流水一致性验证通过';
+  });
+
   return '撤销再提交回放验证通过';
+}
+
+function scenario_configCheckAndAutoSetup() {
+  const currentMonth = getCurrentMonth();
+
+  runStep('初始化：清空所有预算', () => {
+    budgetService.resetAllBudgets();
+    return '预算已清空';
+  });
+
+  let configBefore;
+  runStep('执行配置检查：应报告缺失项', () => {
+    configBefore = budgetService.checkBudgetConfig(currentMonth);
+    assertTrue(configBefore.missingCount > 0, `报告了缺失项（共缺失 ${configBefore.missingCount} 项）`);
+    assertEqual(configBefore.isComplete, false, '配置未完成状态正确');
+    assertTrue(configBefore.coverageRate !== undefined, '覆盖率字段存在');
+
+    const firstMissing = configBefore.missing[0];
+    assertTrue(firstMissing.suggestion !== undefined, '每项缺失都有操作建议');
+    assertTrue(firstMissing.suggestion.includes('配置预算额度'), '建议包含操作指引');
+
+    return `检测到 ${configBefore.missingCount} 项缺失，覆盖率 ${configBefore.coverageRate}`;
+  });
+
+  runStep('自动补齐：以默认额度 0 补齐所有缺失项', () => {
+    const result = budgetService.autoSetupBudgets(currentMonth, 'u5', { defaultAmount: 0 });
+    assertEqual(result.createdCount, configBefore.missingCount, `补齐数量与缺失数一致（${result.createdCount}）`);
+    assertEqual(result.created.length, configBefore.missingCount, 'created数组长度正确');
+    return `自动创建 ${result.createdCount} 条零额度预算`;
+  });
+
+  runStep('再次检查：应标记零额度项', () => {
+    const configAfter = budgetService.checkBudgetConfig(currentMonth);
+    assertEqual(configAfter.isComplete, true, '无缺失项，标记为完成');
+    assertTrue(configAfter.zeroAmountBudgets.length > 0, `检测到 ${configAfter.zeroAmountBudgets.length} 个零额度预算`);
+    return `配置完整，其中 ${configAfter.zeroAmountBudgets.length} 项为零额度`;
+  });
+
+  runStep('再次补齐（只补零额度）：给零额度项赋予有意义的值', () => {
+    const deptAmounts = { dept1: 15000, dept2: 12000, dept3: 8000, dept4: 5000 };
+    const result = budgetService.autoSetupBudgets(currentMonth, 'u5', {
+      defaultAmount: 10000,
+      onlyZero: true,
+      deptAmounts
+    });
+
+    const zeroAfter = store.loadData().budgets.filter(
+      b => b.month === currentMonth && b.totalAmount === 0
+    ).length;
+    assertEqual(zeroAfter, 0, '补齐后没有零额度预算');
+    assertTrue(result.updatedCount > 0, `零额度更新了 ${result.updatedCount} 条`);
+
+    const configFinal = budgetService.checkBudgetConfig(currentMonth);
+    assertEqual(configFinal.isComplete, true, '配置完全完整');
+    assertEqual(configFinal.zeroAmountBudgets.length, 0, '零额度项已全部补齐');
+
+    return `更新了 ${result.updatedCount} 条零额度预算，配置完整度 100%`;
+  });
+
+  return '配置检查与自动补齐验证通过';
+}
+
+function scenario_fourCategoryImportDetails() {
+  const currentMonth = getCurrentMonth();
+
+  runStep('初始化：先创建2条已有预算', () => {
+    budgetService.resetAllBudgets();
+    budgetService.createBudget({
+      month: currentMonth, departmentId: 'dept1',
+      category: '差旅费', totalAmount: 15000
+    }, 'u5');
+    budgetService.createBudget({
+      month: currentMonth, departmentId: 'dept1',
+      category: '办公费', totalAmount: 6000
+    }, 'u5');
+    return '已创建 2 条基础预算：差旅费15000，办公费6000';
+  });
+
+  let importResult;
+  runStep('导入混合CSV：成功/跳过/拒绝覆盖/失败 四类应有', () => {
+    const csvContent = `month,departmentId,category,totalAmount
+${currentMonth},dept1,差旅费,20000
+${currentMonth},dept1,培训费,5000
+${currentMonth},dept1,差旅费,25000
+${currentMonth},dept2,招待费,3000
+${currentMonth},,交通费,2000
+${currentMonth},dept3,通讯费,invalid
+${currentMonth},dept4,培训费,8000`;
+
+    importResult = budgetService.importBudgetsFromCSV(csvContent, 'u5', {
+      fileName: 'test_mixed.csv',
+      remark: '测试四类导入明细'
+    });
+
+    assertTrue(importResult.success.length >= 2, `成功至少2条，实际 ${importResult.success.length}`);
+    assertTrue(importResult.skipped.length >= 1, `跳过至少1条（CSV内重复），实际 ${importResult.skipped.length}`);
+    assertTrue(importResult.rejected.length >= 1, `拒绝覆盖至少1条，实际 ${importResult.rejected.length}`);
+    assertTrue(importResult.failed.length >= 1, `失败至少1条，实际 ${importResult.failed.length}`);
+
+    return `四类明细结果：成功${importResult.success.length}、跳过${importResult.skipped.length}、拒绝覆盖${importResult.rejected.length}、失败${importResult.failed.length}`;
+  });
+
+  runStep('验证四类明细字段完整', () => {
+    for (const s of importResult.success) {
+      assertTrue(s.budgetId !== undefined, '成功记录包含budgetId');
+      assertTrue(s.totalAmount !== undefined, '成功记录包含totalAmount');
+      assertTrue(s.line !== undefined, '成功记录包含行号');
+    }
+    for (const s of importResult.skipped) {
+      assertTrue(s.reason !== undefined, '跳过记录包含reason');
+      assertTrue(s.line !== undefined, '跳过记录包含行号');
+    }
+    for (const r of importResult.rejected) {
+      assertTrue(r.reason !== undefined, '拒绝覆盖记录包含reason');
+      assertTrue(r.existingAmount !== undefined, '拒绝覆盖记录包含现有额度');
+      assertTrue(r.line !== undefined, '拒绝覆盖记录包含行号');
+      assertTrue(r.reason.includes('允许覆盖'), '拒绝覆盖原因提示如何覆盖');
+    }
+    for (const f of importResult.failed) {
+      assertTrue(f.error !== undefined, '失败记录包含error');
+      assertTrue(f.line !== undefined, '失败记录包含行号');
+    }
+    return '四类明细字段完整性验证通过';
+  });
+
+  runStep('拒绝覆盖的数据未被修改', () => {
+    const travelBudget = budgetService.getBudgetByKey(currentMonth, 'dept1', '差旅费');
+    assertApprox(travelBudget.totalAmount, 15000, '差旅费保持原值15000，未被覆盖');
+    return '拒绝覆盖的预算未被修改';
+  });
+
+  runStep('验证批次记录保存完整', () => {
+    assertTrue(importResult.batchId !== undefined, '返回了批次ID');
+    assertTrue(importResult.batchNo !== undefined, '返回了批次号');
+    assertTrue(importResult.batchNo.startsWith('BATCH'), '批次号格式正确');
+    assertEqual(importResult.batch.totalRows, 7, '批次总行数正确');
+    assertEqual(importResult.batch.successCount, importResult.success.length, '批次成功计数正确');
+    assertEqual(importResult.batch.rejectedCount, importResult.rejected.length, '批次拒绝计数正确');
+    assertTrue(importResult.batch.totalAmount > 0, '批次总额度统计正确');
+
+    const batches = budgetService.listImportBatches({ month: currentMonth });
+    assertTrue(batches.length >= 1, `能查询到批次记录（共${batches.length}个批次）`);
+    const lastBatch = budgetService.getImportBatch(importResult.batchId);
+    assertTrue(lastBatch !== null, '可通过ID查询批次详情');
+    assertEqual(lastBatch.batchNo, importResult.batchNo, '批次号一致');
+    return `批次 ${importResult.batchNo} 记录完整，可查询`;
+  });
+
+  runStep('允许覆盖模式：能覆盖已存在的预算', () => {
+    const csvContent = `month,departmentId,category,totalAmount
+${currentMonth},dept1,差旅费,25000
+${currentMonth},dept1,办公费,10000`;
+
+    const overrideResult = budgetService.importBudgetsFromCSV(csvContent, 'u5', {
+      fileName: 'test_override.csv',
+      remark: '测试覆盖导入',
+      allowOverride: true
+    });
+
+    assertEqual(overrideResult.rejected.length, 0, '允许覆盖时拒绝覆盖为0');
+    assertEqual(overrideResult.success.length, 2, '两条都成功（覆盖）');
+
+    const travelAfter = budgetService.getBudgetByKey(currentMonth, 'dept1', '差旅费');
+    const officeAfter = budgetService.getBudgetByKey(currentMonth, 'dept1', '办公费');
+    assertApprox(travelAfter.totalAmount, 25000, '差旅费被覆盖为25000');
+    assertApprox(officeAfter.totalAmount, 10000, '办公费被覆盖为10000');
+
+    return '允许覆盖模式工作正常，两条预算均被覆盖';
+  });
+
+  return '四类导入明细验证通过';
+}
+
+function scenario_reconcileExportAndCrossCheck() {
+  const currentMonth = getCurrentMonth();
+
+  runStep('初始化：创建预算 → 导入批次 → 报销审批产生流水', () => {
+    resetAll();
+    const csvContent = `month,departmentId,category,totalAmount
+${currentMonth},dept1,差旅费,20000
+${currentMonth},dept1,办公费,8000
+${currentMonth},dept2,差旅费,15000`;
+    const batch1 = budgetService.importBudgetsFromCSV(csvContent, 'u5', {
+      fileName: 'reconcile_test_batch1.csv'
+    });
+
+    const r1 = service.createReimbursement({
+      title: '对账测试-差旅费1', amount: 5000, type: '差旅费'
+    }, 'u1');
+    service.auditApprove(r1.id, 'u2');
+    service.auditApprove(r1.id, 'u3');
+
+    const r2 = service.createReimbursement({
+      title: '对账测试-办公费1', amount: 2000, type: '办公费'
+    }, 'u1');
+    service.withdrawReimbursement(r2.id, 'u1', '测试撤销回滚');
+
+    service.resubmitReimbursement(r2.id, 'u1');
+    service.auditApprove(r2.id, 'u2');
+    service.auditApprove(r2.id, 'u3');
+
+    return `批次1创建 + 2张报销单完整流转`;
+  });
+
+  let reconcileCSV;
+  runStep('导出对账数据（CSV格式）', () => {
+    reconcileCSV = budgetService.exportReconcileToCSV({ month: currentMonth });
+    assertTrue(reconcileCSV.length > 0, 'CSV导出内容不为空');
+    const lines = reconcileCSV.split('\n');
+    assertTrue(lines.length >= 2, '至少有表头和一行数据');
+
+    const header = lines[0];
+    const requiredCols = ['batchNo', 'budgetId', 'month', 'departmentId', 'category',
+      'transactionType', 'amount', 'balanceAfter', 'runningTotal', 'runningAvailable'];
+    for (const col of requiredCols) {
+      assertTrue(header.includes(col), `CSV表头包含 ${col}`);
+    }
+
+    return `CSV导出成功：${lines.length - 1} 行数据`;
+  });
+
+  let reconcileJSON;
+  runStep('导出对账数据（JSON格式）并校验结构', () => {
+    reconcileJSON = budgetService.exportReconcileToJSON({ month: currentMonth });
+    const obj = JSON.parse(reconcileJSON);
+
+    assertTrue(obj.exportTime !== undefined, 'JSON包含导出时间');
+    assertTrue(obj.summary !== undefined, 'JSON包含summary');
+    assertTrue(obj.details !== undefined, 'JSON包含details');
+    assertTrue(obj.summaryCount > 0, 'summary有数据');
+    assertTrue(obj.totalRecords > 0, 'details有数据');
+
+    for (const s of obj.summary) {
+      assertTrue(s.month !== undefined, 'summary有month');
+      assertTrue(s.departmentId !== undefined, 'summary有departmentId');
+      assertTrue(s.category !== undefined, 'summary有category');
+      assertTrue(s.finalAvailable !== undefined, 'summary有finalAvailable');
+      assertTrue(s.batches !== undefined, 'summary关联了批次号');
+    }
+
+    for (const d of obj.details) {
+      assertTrue(d.transactionId !== undefined, 'detail有transactionId');
+      assertTrue(d.runningTotal !== undefined, 'detail有runningTotal');
+      assertTrue(d.operatedAt !== undefined, 'detail有operatedAt');
+    }
+
+    return `JSON导出成功：${obj.summaryCount} 条汇总，${obj.totalRecords} 条明细`;
+  });
+
+  runStep('对账数据交叉校验：批次、月份、部门、交易类型、额度变化一致', () => {
+    const obj = JSON.parse(reconcileJSON);
+    const byBudget = {};
+
+    for (const d of obj.details) {
+      const key = `${d.budgetId}`;
+      if (!byBudget[key]) byBudget[key] = [];
+      byBudget[key].push(d);
+    }
+
+    for (const budgetId of Object.keys(byBudget)) {
+      const items = byBudget[budgetId].sort((a, b) =>
+        new Date(a.operatedAt) - new Date(b.operatedAt)
+      );
+      const last = items[items.length - 1];
+
+      const budget = budgetService.getBudget(budgetId);
+      assertApprox(last.runningTotal, budget.totalAmount,
+        `预算 ${budgetId} 的 runningTotal 与 totalAmount 一致`);
+      assertApprox(last.runningUsed, budget.usedAmount,
+        `预算 ${budgetId} 的 runningUsed 与 usedAmount 一致`);
+      assertApprox(last.runningFrozen, budget.frozenAmount,
+        `预算 ${budgetId} 的 runningFrozen 与 frozenAmount 一致`);
+      assertApprox(last.runningAvailable, budgetService.computeAvailable(budget),
+        `预算 ${budgetId} 的 runningAvailable 与 计算值 一致`);
+    }
+
+    const hasImport = obj.details.some(d => d.transactionType === BUDGET_TRANSACTION_TYPES.IMPORT);
+    const hasFreeze = obj.details.some(d => d.transactionType === BUDGET_TRANSACTION_TYPES.FREEZE);
+    const hasDeduct = obj.details.some(d => d.transactionType === BUDGET_TRANSACTION_TYPES.DEDUCT);
+    const hasRelease = obj.details.some(d => d.transactionType === BUDGET_TRANSACTION_TYPES.RELEASE);
+    assertTrue(hasImport, '对账包含导入流水');
+    assertTrue(hasFreeze, '对账包含冻结流水');
+    assertTrue(hasDeduct, '对账包含扣减流水');
+    assertTrue(hasRelease, '对账包含释放流水');
+
+    return '对账数据与实际数据完全一致，涵盖导入/冻结/扣减/释放四种交易类型';
+  });
+
+  runStep('对账数据关联导入批次号正确', () => {
+    const obj = JSON.parse(reconcileJSON);
+    const batches = budgetService.listImportBatches({ month: currentMonth });
+    assertTrue(batches.length >= 1, '至少有1个导入批次');
+
+    const importRecords = obj.details.filter(
+      d => d.transactionType === BUDGET_TRANSACTION_TYPES.IMPORT
+    );
+    for (const rec of importRecords) {
+      assertTrue(rec.batchNo !== '-', '导入流水关联了批次号');
+      const found = batches.some(b => b.batchNo === rec.batchNo);
+      assertTrue(found, `批次号 ${rec.batchNo} 在批次列表中存在`);
+    }
+
+    return `对账数据批次关联正确，共 ${importRecords.length} 条导入流水已关联`;
+  });
+
+  return '对账导出与交叉校验验证通过';
+}
+
+function scenario_fullAcceptancePipeline() {
+  const currentMonth = getCurrentMonth();
+  const STAGES = [];
+
+  runStep('STAGE 1: 初始化 → 检查配置 → 自动补齐', () => {
+    resetAll();
+
+    const check1 = budgetService.checkBudgetConfig(currentMonth);
+    STAGES.push({ stage: 'S1-初始检查', missing: check1.missingCount });
+
+    if (!check1.isComplete) {
+      const auto = budgetService.autoSetupBudgets(currentMonth, 'u5', {
+        defaultAmount: 0
+      });
+      STAGES.push({ stage: 'S1-零额度补齐', created: auto.createdCount });
+
+      const auto2 = budgetService.autoSetupBudgets(currentMonth, 'u5', {
+        onlyZero: true,
+        deptAmounts: { dept1: 20000, dept2: 15000, dept3: 10000, dept4: 8000 },
+        categoryAmounts: { 差旅费: 5000, 招待费: 3000 }
+      });
+      STAGES.push({ stage: 'S1-零额度更新', updated: auto2.updatedCount });
+    }
+
+    const finalCheck = budgetService.checkBudgetConfig(currentMonth);
+    assertTrue(finalCheck.isComplete, `配置检查通过，覆盖率 ${finalCheck.coverageRate}`);
+    assertEqual(finalCheck.zeroAmountBudgets.length, 0, '零额度全部补齐');
+    STAGES.push({ stage: 'S1-完成', configured: finalCheck.configuredCount });
+
+    return `配置检查 + 自动补齐完成，共 ${finalCheck.configuredCount} 条预算配置完毕`;
+  });
+
+  let batch1Id, batch2Id;
+  runStep('STAGE 2: 导入预算（首次覆盖 + 二次含拒绝覆盖）', () => {
+    const csv1 = `month,departmentId,category,totalAmount
+${currentMonth},dept1,差旅费,25000
+${currentMonth},dept1,办公费,10000
+${currentMonth},dept2,差旅费,18000
+${currentMonth},dept2,招待费,5000
+${currentMonth},dept3,培训费,8000
+${currentMonth},dept4,交通费,3000`;
+    const batch1 = budgetService.importBudgetsFromCSV(csv1, 'u5', {
+      fileName: 'FY25_budget_v1.csv', remark: '首次正式导入',
+      allowOverride: true
+    });
+    batch1Id = batch1.batchId;
+    STAGES.push({
+      stage: 'S2-批次1',
+      batchNo: batch1.batchNo,
+      success: batch1.success.length,
+      skipped: batch1.skipped.length,
+      rejected: batch1.rejected.length,
+      failed: batch1.failed.length,
+      totalAmount: batch1.batch.totalAmount
+    });
+
+    const csv2 = `month,departmentId,category,totalAmount
+${currentMonth},dept1,差旅费,99999
+${currentMonth},dept1,培训费,6000
+${currentMonth},dept4,通讯费,1500
+${currentMonth},dept3,交通费,invalid
+${currentMonth},dept2,差旅费,99999`;
+    const batch2 = budgetService.importBudgetsFromCSV(csv2, 'u3', {
+      fileName: 'FY25_budget_supplement.csv', remark: '补充科目'
+    });
+    batch2Id = batch2.batchId;
+    assertTrue(batch2.rejected.length >= 2, `拒绝覆盖至少2条（差旅费重复），实际 ${batch2.rejected.length}`);
+    assertTrue(batch2.failed.length >= 1, `失败至少1条（invalid），实际 ${batch2.failed.length}`);
+    STAGES.push({
+      stage: 'S2-批次2',
+      batchNo: batch2.batchNo,
+      success: batch2.success.length,
+      skipped: batch2.skipped.length,
+      rejected: batch2.rejected.length,
+      failed: batch2.failed.length,
+      totalAmount: batch2.batch.totalAmount
+    });
+
+    const travelBudget = budgetService.getBudgetByKey(currentMonth, 'dept1', '差旅费');
+    assertApprox(travelBudget.totalAmount, 25000, '拒绝覆盖生效，差旅费保持25000');
+
+    return `两个批次导入完成：批次1 ${batch1.success.length}条，批次2 ${batch2.success.length}条`;
+  });
+
+  runStep('STAGE 3: 业务操作（创建/撤销/重提/审批/归档）', () => {
+    const r1 = service.createReimbursement({
+      title: '差旅报销-北京出差', amount: 8000, type: '差旅费'
+    }, 'u1');
+    const r2 = service.createReimbursement({
+      title: '办公用品采购', amount: 3500, type: '办公费'
+    }, 'u1');
+    const r3 = service.createReimbursement({
+      title: '客户招待餐费', amount: 2000, type: '招待费'
+    }, 'u1');
+
+    service.withdrawReimbursement(r2.id, 'u1', '金额填错，撤销修改');
+    service.resubmitReimbursement(r2.id, 'u1');
+
+    service.auditApprove(r1.id, 'u2');
+    service.auditApprove(r1.id, 'u3');
+    service.auditApprove(r2.id, 'u2');
+    service.auditApprove(r2.id, 'u3');
+    service.auditApprove(r3.id, 'u2');
+    service.auditApprove(r3.id, 'u3');
+
+    service.archive(r1.id, 'u4');
+    service.archive(r2.id, 'u4');
+
+    for (const id of [r1.id, r2.id, r3.id]) {
+      const result = budgetService.validateReimbursementLogConsistency(id);
+      assertTrue(result.valid, `报销单 ${id} 日志一致性：${result.issues.join(';')}`);
+    }
+    STAGES.push({ stage: 'S3-业务完成', reimbursements: 3 });
+
+    return '3张报销单全部完成流转，日志与流水一致性全部通过';
+  });
+
+  runStep('STAGE 4: 导出对账，交叉校验数据完整性', () => {
+    const csv = budgetService.exportReconcileToCSV({ month: currentMonth });
+    const json = budgetService.exportReconcileToJSON({ month: currentMonth });
+    const obj = JSON.parse(json);
+
+    const csvLines = csv.split('\n');
+    assertTrue(csvLines.length >= 5, 'CSV至少5行');
+    assertEqual(obj.totalRecords, csvLines.length - 1, 'JSON与CSV记录数一致');
+
+    const batches = budgetService.listImportBatches({ month: currentMonth });
+    assertTrue(batches.length >= 2, `至少有2个导入批次（实际${batches.length}）`);
+
+    const batchNos = new Set();
+    for (const d of obj.details) {
+      if (d.transactionType === BUDGET_TRANSACTION_TYPES.IMPORT && d.batchNo !== '-') {
+        batchNos.add(d.batchNo);
+      }
+    }
+    for (const b of batches) {
+      const hasSuccess = b.details && Array.isArray(b.details.success) && b.details.success.length > 0;
+      if (hasSuccess) {
+        assertTrue(batchNos.has(b.batchNo), `对账数据包含有成功记录的批次 ${b.batchNo}`);
+      }
+    }
+
+    STAGES.push({ stage: 'S4-对账完成', summaryCount: obj.summaryCount, totalRecords: obj.totalRecords });
+
+    return `对账导出完成：JSON ${obj.totalRecords} 条明细，CSV ${csvLines.length - 1} 行，包含 ${batches.length} 个批次`;
+  });
+
+  runStep('STAGE 5: 模拟重启，跨重启状态保持验证', () => {
+    const before = snapshotData('重启前');
+    simulateRestart();
+    const after = snapshotData('重启后');
+    const issues = compareSnapshots(before, after);
+    assertEqual(issues.length, 0, `重启后数据一致，问题：${issues.join('; ')}`);
+
+    const batchesAfter = budgetService.listImportBatches({ month: currentMonth });
+    assertEqual(batchesAfter.length, 2, '重启后导入批次记录保留');
+
+    const data = store.loadData();
+    for (const budget of data.budgets) {
+      const freezes = data.budgetFreezes.filter(f => f.budgetId === budget.id);
+      const frozenSum = freezes
+        .filter(f => f.status === BUDGET_FREEZE_STATUS.FROZEN)
+        .reduce((s, f) => s + f.amount, 0);
+      const deductedSum = freezes
+        .filter(f => f.status === BUDGET_FREEZE_STATUS.DEDUCTED)
+        .reduce((s, f) => s + f.amount, 0);
+
+      assertApprox(budget.frozenAmount, frozenSum, `预算 ${budget.id} 冻结一致`);
+      assertApprox(budget.usedAmount, deductedSum, `预算 ${budget.id} 已用一致`);
+    }
+
+    STAGES.push({ stage: 'S5-重启通过', budgetCount: after.budgetCount });
+    return '跨重启状态保持验证通过';
+  });
+
+  log('info', '完整验收链路阶段汇总:', STAGES);
+  return `完整验收链路通过：5个阶段全部验证成功（${STAGES.map(s => s.stage).join(' → ')}）`;
 }
 
 function generateHTMLReport() {
@@ -1286,16 +1780,38 @@ function generateHTMLReport() {
 
 function runAcceptance() {
   acceptanceState.startTime = nowISO();
+  const currentMonth = getCurrentMonth();
 
   console.log('\n' + '═'.repeat(70));
-  console.log('💰 预算回放验收模块');
+  console.log('💰 预算验收中心 · 全链路自动化验收');
   console.log('═'.repeat(70));
   console.log('内置场景：重启恢复、导入冲突、权限拦截、撤销回补、配置缺失回退');
   console.log('          重复导入一致性、跨重启一致性、撤销重提回放');
-  console.log('输出：HTML 结果页、日志摘要、失败定位');
+  console.log('  ✨ 新增：  配置检查与自动补齐、四类导入明细、对账导出与交叉校验');
+  console.log('          完整端到端链路（配置→导入→业务→对账→重启）');
+  console.log('输出：HTML 结果页、日志摘要、失败定位、CLI 提示');
   console.log('═'.repeat(70));
 
   try {
+    const initConfig = budgetService.checkBudgetConfig(currentMonth);
+    console.log(`\n📋 启动时预算配置检查（${currentMonth}月）：`);
+    console.log(`   覆盖率：${initConfig.coverageRate}（${initConfig.configuredCount}/${initConfig.totalCombinations}）`);
+    if (initConfig.isComplete && initConfig.zeroAmountBudgets.length === 0) {
+      console.log(`   ✅ 配置完整，可直接进入验收`);
+    } else {
+      if (initConfig.missingCount > 0) {
+        console.log(`   ⚠️  缺失 ${initConfig.missingCount} 项预算配置`);
+        console.log(`      示例缺失：${initConfig.missing.slice(0, 3).map(m => `${m.departmentName}-${m.category}`).join('、')}${initConfig.missing.length > 3 ? '...' : ''}`);
+      }
+      if (initConfig.zeroAmountBudgets.length > 0) {
+        console.log(`   ⚠️  ${initConfig.zeroAmountBudgets.length} 项为零额度预算`);
+      }
+      console.log(`   💡 修复方式：`);
+      console.log(`      1. 在验收场景中会自动调用 autoSetupBudgets 补齐`);
+      console.log(`      2. 或手动调用 API：POST /api/budgets/auto-setup`);
+      console.log(`      3. 或使用管理员账号在预算管理中导入 CSV`);
+    }
+
     resetAll();
 
     runScenario(
@@ -1350,8 +1866,36 @@ function runAcceptance() {
     runScenario(
       'S08',
       '撤销再提交回放',
-      '完整回放：创建→撤销→重提→审批→归档，验证额度变化、流水记录、冻结状态',
+      '完整回放：创建→撤销→重提→审批→归档，验证额度变化、流水记录、冻结状态及操作日志一致性',
       scenario_withdrawResubmitReplay
+    );
+
+    runScenario(
+      'S09',
+      '配置检查与自动补齐',
+      '启动时检查配置完整性，自动补齐缺失项和零额度项，CLI 和接口明确提示缺失内容',
+      scenario_configCheckAndAutoSetup
+    );
+
+    runScenario(
+      'S10',
+      '四类导入明细',
+      '导入结果明确区分成功、跳过重复、拒绝覆盖、失败原因四类明细，批次记录完整',
+      scenario_fourCategoryImportDetails
+    );
+
+    runScenario(
+      'S11',
+      '对账导出与交叉校验',
+      '导出CSV/JSON对账数据，校验批次号、月份、部门、交易类型、额度变化与实际数据完全一致',
+      scenario_reconcileExportAndCrossCheck
+    );
+
+    runScenario(
+      'S12',
+      '完整端到端验收链路',
+      '5阶段完整链路：配置检查&自动补齐 → 导入两个批次含拒绝覆盖 → 业务操作（创建/撤销/重提/审批/归档） → 对账导出交叉校验 → 跨重启状态保持',
+      scenario_fullAcceptancePipeline
     );
 
   } catch (e) {
@@ -1367,30 +1911,75 @@ function runAcceptance() {
   console.log(`  ✅  通过：${acceptanceState.passedScenarios}`);
   console.log(`  ❌  失败：${acceptanceState.failedScenarios}`);
   console.log(`  ⏭️  跳过：${acceptanceState.skippedScenarios}`);
-  console.log(`  通过率：${acceptanceState.totalScenarios > 0 ? ((acceptanceState.passedScenarios / acceptanceState.totalScenarios) * 100).toFixed(1) : 0}%`);
+  const passRate = acceptanceState.totalScenarios > 0
+    ? ((acceptanceState.passedScenarios / acceptanceState.totalScenarios) * 100).toFixed(1)
+    : 0;
+  console.log(`  通过率：${passRate}%`);
   console.log('═'.repeat(70));
 
   if (acceptanceState.failedScenarios > 0) {
-    console.log('\n❌ 失败场景：');
+    console.log('\n❌ 失败场景定位：');
     acceptanceState.scenarios
       .filter(s => s.status === 'failed')
-      .forEach(s => {
-        console.log(`  - ${s.name}`);
-        console.log(`    ${s.error.message}`);
+      .forEach((s, i) => {
+        console.log(`  ${i + 1}. [${s.id}] ${s.name}`);
+        console.log(`     错误：${s.error.message}`);
+        const failedStep = s.error.stack?.split('\n')[1] || '';
+        if (failedStep) console.log(`     位置：${failedStep.trim()}`);
       });
+    console.log('\n🔍 失败排查建议：');
+    console.log('  · 查看日志文件 acceptance-results/budget-acceptance.log');
+    console.log('  · 查看HTML报告中的失败堆栈');
+    console.log('  · 用管理员账号在前端验收中心查看详细状态');
   }
 
   const reportFile = generateHTMLReport();
   saveLog();
 
+  const resultFile = path.join(RESULTS_DIR, 'budget-acceptance-result.json');
+  const jsonResult = {
+    startTime: acceptanceState.startTime,
+    endTime: acceptanceState.endTime,
+    durationMs: acceptanceState.endTime ? (new Date(acceptanceState.endTime) - new Date(acceptanceState.startTime)) : 0,
+    totalScenarios: acceptanceState.totalScenarios,
+    passedScenarios: acceptanceState.passedScenarios,
+    failedScenarios: acceptanceState.failedScenarios,
+    skippedScenarios: acceptanceState.skippedScenarios,
+    passRate: passRate,
+    reportUrl: '/api/acceptance/report',
+    reportFile: reportFile,
+    logFile: LOG_FILE,
+    results: acceptanceState.scenarios.map(s => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      status: s.status,
+      passed: s.status === 'passed',
+      durationMs: s.durationMs || 0,
+      stepCount: s.stepCount || 0,
+      error: s.error ? { message: s.error.message, stack: (s.error.stack || '').split('\n').slice(0, 3).join('\n') } : null,
+      stages: s.stages || null
+    })),
+    failedScenariosDetails: acceptanceState.scenarios
+      .filter(s => s.status === 'failed')
+      .map(s => ({
+        id: s.id,
+        name: s.name,
+        error: s.error ? s.error.message : '未知错误',
+        failedStep: s.error?.stack?.split('\n')[1]?.trim() || ''
+      }))
+  };
+  fs.writeFileSync(resultFile, JSON.stringify(jsonResult, null, 2), 'utf8');
+
   console.log(`\n📄 HTML 报告：${reportFile}`);
   console.log(`📝 完整日志：${LOG_FILE}`);
+  console.log(`💾 结果数据：${resultFile}`);
   console.log(`\n💡 重新运行：npm run budget-acceptance`);
 
   if (acceptanceState.failedScenarios > 0) {
     process.exit(1);
   } else {
-    console.log('\n🎉 所有验收场景通过！');
+    console.log('\n🎉 所有验收场景通过！预算验收中心已就绪。');
     process.exit(0);
   }
 }

@@ -40,6 +40,7 @@
               <div class="tab-item active" data-tab="list">📋 报销单列表</div>
               <div class="tab-item" data-tab="tasks">⏰ 补件任务</div>
               <div class="tab-item" data-tab="budgets" id="budgetTab" style="display:none">💰 预算管理</div>
+              <div class="tab-item" data-tab="acceptance" id="acceptanceTab" style="display:none">🧪 预算验收中心</div>
             </div>
             <button class="btn btn-primary" id="createBtn" style="display:none">+ 新建报销单</button>
             <button class="btn btn-primary" id="createBudgetBtn" style="display:none">+ 新建预算</button>
@@ -118,6 +119,77 @@
             </div>
             <div class="budget-list" id="budgetListContainer">
               <div class="empty-state">加载中...</div>
+            </div>
+          </div>
+          <div class="acceptance-panel" id="acceptancePanel" style="display:none">
+            <div class="acceptance-toolbar">
+              <div class="acceptance-summary-cards">
+                <div class="acc-card">
+                  <div class="acc-card-label">配置覆盖率</div>
+                  <div class="acc-card-value" id="accCoverageRate">--</div>
+                  <div class="acc-card-sub" id="accCoverageSub">请执行检查</div>
+                </div>
+                <div class="acc-card">
+                  <div class="acc-card-label">导入批次</div>
+                  <div class="acc-card-value" id="accBatchCount">--</div>
+                  <div class="acc-card-sub">本月成功导入批次</div>
+                </div>
+                <div class="acc-card">
+                  <div class="acc-card-label">对账记录</div>
+                  <div class="acc-card-value" id="accReconcileCount">--</div>
+                  <div class="acc-card-sub">本月交易流水总数</div>
+                </div>
+                <div class="acc-card">
+                  <div class="acc-card-label">验收场景</div>
+                  <div class="acc-card-value" id="accScenarioCount">12</div>
+                  <div class="acc-card-sub">内置自动化测试场景</div>
+                </div>
+              </div>
+            </div>
+            <div class="acceptance-actions">
+              <button class="btn btn-primary" id="accCheckConfigBtn">📋 检查配置</button>
+              <button class="btn btn-success" id="accAutoSetupBtn">🛠️ 自动补齐</button>
+              <button class="btn btn-info" id="accRunAcceptanceBtn">▶️ 运行完整验收</button>
+              <button class="btn btn-secondary" id="accViewReportBtn">📄 查看验收报告</button>
+              <button class="btn btn-warning" id="accReconcileExportBtn" style="margin-left:auto">📤 导出对账</button>
+            </div>
+
+            <div class="acceptance-section" id="accConfigSection" style="display:none">
+              <h3 class="section-title">📋 预算配置检查</h3>
+              <div id="accConfigStatus" class="config-status"></div>
+              <div id="accConfigMissing" class="config-missing"></div>
+              <div id="accConfigZero" class="config-zero"></div>
+            </div>
+
+            <div class="acceptance-section">
+              <h3 class="section-title">📥 导入批次记录</h3>
+              <div class="import-batches-list" id="accBatchList">
+                <div class="empty-state">暂无导入批次</div>
+              </div>
+            </div>
+
+            <div class="acceptance-section">
+              <h3 class="section-title">📊 四类导入明细示例</h3>
+              <div class="import-details-tabs">
+                <button class="tab-btn active" data-detail-tab="success">✅ 成功 <span id="cntSuccess">0</span></button>
+                <button class="tab-btn" data-detail-tab="skipped">⏭️ 跳过 <span id="cntSkipped">0</span></button>
+                <button class="tab-btn" data-detail-tab="rejected">🚫 拒绝覆盖 <span id="cntRejected">0</span></button>
+                <button class="tab-btn" data-detail-tab="failed">❌ 失败 <span id="cntFailed">0</span></button>
+              </div>
+              <div class="import-details-content" id="accImportDetails">
+                <div class="empty-state">请先执行验收脚本或导入预算以查看明细</div>
+              </div>
+            </div>
+
+            <div class="acceptance-section">
+              <h3 class="section-title">🔍 操作日志与预算流水一致性</h3>
+              <div class="consistency-check">
+                <div class="consistency-input">
+                  <input type="text" id="accConsistencyId" placeholder="请输入报销单ID 如 BX1001">
+                  <button class="btn btn-primary btn-sm" id="accCheckConsistencyBtn">检查一致性</button>
+                </div>
+                <div id="accConsistencyResult" class="consistency-result"></div>
+              </div>
             </div>
           </div>
         </div>

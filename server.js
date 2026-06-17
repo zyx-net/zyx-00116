@@ -397,6 +397,144 @@ app.get('/api/reimbursements/:id/budget-status', requireAuth, (req, res) => {
   }
 });
 
+app.get('/api/budgets/config/check', requireAuth, (req, res) => {
+  try {
+    const { month } = req.query;
+    const config = budgetService.checkBudgetConfig(month);
+    res.json(config);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/budgets/auto-setup', requireAuth, (req, res) => {
+  try {
+    if (!['admin', 'finance'].includes(req.user.role)) {
+      return res.status(403).json({ error: '无权限自动补齐预算' });
+    }
+    const { month, defaultAmount, onlyZero, deptAmounts, categoryAmounts } = req.body;
+    const result = budgetService.autoSetupBudgets(month, req.user.id, {
+      defaultAmount: defaultAmount || 0,
+      onlyZero: onlyZero === true,
+      deptAmounts: deptAmounts || {},
+      categoryAmounts: categoryAmounts || {}
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.get('/api/budgets/import/batches', requireAuth, (req, res) => {
+  try {
+    const { month, operatorId } = req.query;
+    const filter = {};
+    if (month) filter.month = month;
+    if (operatorId) filter.operatorId = operatorId;
+    if (req.user.role === 'applicant') {
+      filter.operatorId = req.user.id;
+    }
+    const list = budgetService.listImportBatches(filter);
+    res.json({ list });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.get('/api/budgets/import/batches/:id', requireAuth, (req, res) => {
+  try {
+    const batch = budgetService.getImportBatch(req.params.id);
+    if (!batch) return res.status(404).json({ error: '导入批次不存在' });
+    res.json(batch);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.get('/api/budgets/reconcile/export', requireAuth, (req, res) => {
+  try {
+    const { month, format = 'csv' } = req.query;
+    const filter = {};
+    if (month) filter.month = month;
+
+    if (format.toLowerCase() === 'json') {
+      const json = budgetService.exportReconcileToJSON(filter);
+      const fileName = `budget_reconcile_${Date.now()}.json`;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.send(json);
+    } else {
+      const csv = budgetService.exportReconcileToCSV(filter);
+      const fileName = `budget_reconcile_${Date.now()}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.send('\uFEFF' + csv);
+    }
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.get('/api/budgets/reconcile/data', requireAuth, (req, res) => {
+  try {
+    const { month } = req.query;
+    const filter = {};
+    if (month) filter.month = month;
+    const result = budgetService.exportReconcile(filter);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.get('/api/reimbursements/:id/log-consistency', requireAuth, (req, res) => {
+  try {
+    const result = budgetService.validateReimbursementLogConsistency(req.params.id);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.get('/api/acceptance/run', requireAuth, (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: '仅管理员可运行完整验收' });
+    }
+    const { execSync } = require('child_process');
+    const fs = require('fs');
+    const path = require('path');
+    try {
+      execSync('node budget-acceptance.js', { encoding: 'utf-8', stdio: 'ignore' });
+    } catch (e) {
+      // 非0退出码不代表崩溃，可能是有失败场景，继续读结果文件
+    }
+    const resultFile = path.join(__dirname, 'acceptance-results', 'budget-acceptance-result.json');
+    if (fs.existsSync(resultFile)) {
+      const result = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
+      res.json(result);
+    } else {
+      res.status(500).json({ error: '验收结果文件未生成' });
+    }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/acceptance/report', requireAuth, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'finance') {
+    return res.status(403).json({ error: '仅管理员/财务可查看验收报告' });
+  }
+  const fs = require('fs');
+  const path = require('path');
+  const reportFile = path.join(__dirname, 'acceptance-results', 'budget-acceptance-report.html');
+  if (fs.existsSync(reportFile)) {
+    res.sendFile(reportFile);
+  } else {
+    res.status(404).json({ error: '验收报告不存在，请先运行验收脚本' });
+  }
+});
+
 app.post('/api/reset', (req, res) => {
   service.resetAll();
   res.json({ ok: true });
@@ -404,4 +542,5 @@ app.post('/api/reset', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`报销单工作台已启动: http://localhost:${PORT}`);
+  console.log(`预算验收中心 · 运行验收: node budget-acceptance.js`);
 });

@@ -1,0 +1,148 @@
+{
+  "startTime": "2026-06-17T01:17:18.389Z",
+  "endTime": "2026-06-17T01:17:18.620Z",
+  "durationMs": 231,
+  "totalScenarios": 12,
+  "passedScenarios": 12,
+  "failedScenarios": 0,
+  "skippedScenarios": 0,
+  "passRate": "100.0",
+  "reportUrl": "/api/acceptance/report",
+  "reportFile": "D:\\workSpace\\AI__SPACE\\zyx-00116\\acceptance-results\\budget-acceptance-report.html",
+  "logFile": "D:\\workSpace\\AI__SPACE\\zyx-00116\\acceptance-results\\budget-acceptance.log",
+  "results": [
+    {
+      "id": "S01",
+      "name": "重启恢复验证",
+      "description": "模拟服务重启，验证预算数据、冻结记录、交易流水完全一致，重启后业务操作正常",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S02",
+      "name": "导入冲突与分类验证",
+      "description": "验证重复导入跳过已存在、CSV内重复去重、成功/跳过/失败三类结果清晰可辨",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S03",
+      "name": "权限拦截验证",
+      "description": "验证申请人/审核员/财务/管理员各角色的预算操作权限边界",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S04",
+      "name": "撤销后额度回补",
+      "description": "验证撤销后预算释放、重提后重新冻结、多次循环后额度计算准确",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S05",
+      "name": "配置缺失回退",
+      "description": "验证未配置预算时的友好提示，以及失败时数据完全回退不产生脏数据",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S06",
+      "name": "重复导入一致性",
+      "description": "验证同批数据多次重复导入后额度、冻结、流水保持一致，导出导入对账正确",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S07",
+      "name": "跨重启状态一致性",
+      "description": "复杂场景下（冻结/扣减/释放并存）重启后所有数据和计算逻辑完全一致",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S08",
+      "name": "撤销再提交回放",
+      "description": "完整回放：创建→撤销→重提→审批→归档，验证额度变化、流水记录、冻结状态及操作日志一致性",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S09",
+      "name": "配置检查与自动补齐",
+      "description": "启动时检查配置完整性，自动补齐缺失项和零额度项，CLI 和接口明确提示缺失内容",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S10",
+      "name": "四类导入明细",
+      "description": "导入结果明确区分成功、跳过重复、拒绝覆盖、失败原因四类明细，批次记录完整",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S11",
+      "name": "对账导出与交叉校验",
+      "description": "导出CSV/JSON对账数据，校验批次号、月份、部门、交易类型、额度变化与实际数据完全一致",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    },
+    {
+      "id": "S12",
+      "name": "完整端到端验收链路",
+      "description": "5阶段完整链路：配置检查&自动补齐 → 导入两个批次含拒绝覆盖 → 业务操作（创建/撤销/重提/审批/归档） → 对账导出交叉校验 → 跨重启状态保持",
+      "status": "passed",
+      "passed": true,
+      "durationMs": 0,
+      "stepCount": 0,
+      "error": null,
+      "stages": null
+    }
+  ],
+  "failedScenariosDetails": []
+}

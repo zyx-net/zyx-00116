@@ -167,20 +167,20 @@
       <h1>💰 预算回放验收报告</h1>
       <div class="subtitle">预算模块全场景自动化验收 · 一键复跑</div>
       <div class="stats-row">
-        <div class="stat-item">开始时间：2026-06-16 23:55:03</div>
-        <div class="stat-item">结束时间：2026-06-16 23:55:04</div>
-        <div class="stat-item">总耗时：0.37s</div>
+        <div class="stat-item">开始时间：2026-06-17 01:17:18</div>
+        <div class="stat-item">结束时间：2026-06-17 01:17:18</div>
+        <div class="stat-item">总耗时：0.23s</div>
         <div class="stat-item">通过率：100.0%</div>
       </div>
     </div>
 
     <div class="summary">
       <div class="summary-card total">
-        <div class="value">8</div>
+        <div class="value">12</div>
         <div class="label">总场景数</div>
       </div>
       <div class="summary-card passed">
-        <div class="value">8</div>
+        <div class="value">12</div>
         <div class="label">通过</div>
       </div>
       <div class="summary-card failed">
@@ -204,14 +204,14 @@
             <span class="scenario-name">重启恢复验证</span>
           </div>
           <div class="scenario-meta">
-            <span class="duration">0.07s</span>
+            <span class="duration">0.03s</span>
           </div>
         </div>
         <div class="scenario-description">模拟服务重启，验证预算数据、冻结记录、交易流水完全一致，重启后业务操作正常</div>
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S01</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -222,14 +222,14 @@
             <span class="scenario-name">导入冲突与分类验证</span>
           </div>
           <div class="scenario-meta">
-            <span class="duration">0.02s</span>
+            <span class="duration">0.01s</span>
           </div>
         </div>
         <div class="scenario-description">验证重复导入跳过已存在、CSV内重复去重、成功/跳过/失败三类结果清晰可辨</div>
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S02</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -247,7 +247,7 @@
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S03</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -258,14 +258,14 @@
             <span class="scenario-name">撤销后额度回补</span>
           </div>
           <div class="scenario-meta">
-            <span class="duration">0.07s</span>
+            <span class="duration">0.03s</span>
           </div>
         </div>
         <div class="scenario-description">验证撤销后预算释放、重提后重新冻结、多次循环后额度计算准确</div>
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S04</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -276,14 +276,14 @@
             <span class="scenario-name">配置缺失回退</span>
           </div>
           <div class="scenario-meta">
-            <span class="duration">0.01s</span>
+            <span class="duration">0.00s</span>
           </div>
         </div>
         <div class="scenario-description">验证未配置预算时的友好提示，以及失败时数据完全回退不产生脏数据</div>
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S05</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -294,14 +294,14 @@
             <span class="scenario-name">重复导入一致性</span>
           </div>
           <div class="scenario-meta">
-            <span class="duration">0.03s</span>
+            <span class="duration">0.01s</span>
           </div>
         </div>
         <div class="scenario-description">验证同批数据多次重复导入后额度、冻结、流水保持一致，导出导入对账正确</div>
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S06</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -312,14 +312,14 @@
             <span class="scenario-name">跨重启状态一致性</span>
           </div>
           <div class="scenario-meta">
-            <span class="duration">0.06s</span>
+            <span class="duration">0.02s</span>
           </div>
         </div>
         <div class="scenario-description">复杂场景下（冻结/扣减/释放并存）重启后所有数据和计算逻辑完全一致</div>
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S07</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -330,14 +330,86 @@
             <span class="scenario-name">撤销再提交回放</span>
           </div>
           <div class="scenario-meta">
-            <span class="duration">0.09s</span>
+            <span class="duration">0.01s</span>
           </div>
         </div>
-        <div class="scenario-description">完整回放：创建→撤销→重提→审批→归档，验证额度变化、流水记录、冻结状态</div>
+        <div class="scenario-description">完整回放：创建→撤销→重提→审批→归档，验证额度变化、流水记录、冻结状态及操作日志一致性</div>
         
         <div class="scenario-footer">
           <span class="scenario-id">ID: S08</span>
-          <span class="scenario-time">2026-06-16 23:55:03</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
+        </div>
+      </div>
+    
+      <div class="scenario-card passed">
+        <div class="scenario-header">
+          <div class="scenario-title">
+            <span class="status-icon">✅</span>
+            <span class="scenario-name">配置检查与自动补齐</span>
+          </div>
+          <div class="scenario-meta">
+            <span class="duration">0.01s</span>
+          </div>
+        </div>
+        <div class="scenario-description">启动时检查配置完整性，自动补齐缺失项和零额度项，CLI 和接口明确提示缺失内容</div>
+        
+        <div class="scenario-footer">
+          <span class="scenario-id">ID: S09</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
+        </div>
+      </div>
+    
+      <div class="scenario-card passed">
+        <div class="scenario-header">
+          <div class="scenario-title">
+            <span class="status-icon">✅</span>
+            <span class="scenario-name">四类导入明细</span>
+          </div>
+          <div class="scenario-meta">
+            <span class="duration">0.01s</span>
+          </div>
+        </div>
+        <div class="scenario-description">导入结果明确区分成功、跳过重复、拒绝覆盖、失败原因四类明细，批次记录完整</div>
+        
+        <div class="scenario-footer">
+          <span class="scenario-id">ID: S10</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
+        </div>
+      </div>
+    
+      <div class="scenario-card passed">
+        <div class="scenario-header">
+          <div class="scenario-title">
+            <span class="status-icon">✅</span>
+            <span class="scenario-name">对账导出与交叉校验</span>
+          </div>
+          <div class="scenario-meta">
+            <span class="duration">0.02s</span>
+          </div>
+        </div>
+        <div class="scenario-description">导出CSV/JSON对账数据，校验批次号、月份、部门、交易类型、额度变化与实际数据完全一致</div>
+        
+        <div class="scenario-footer">
+          <span class="scenario-id">ID: S11</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
+        </div>
+      </div>
+    
+      <div class="scenario-card passed">
+        <div class="scenario-header">
+          <div class="scenario-title">
+            <span class="status-icon">✅</span>
+            <span class="scenario-name">完整端到端验收链路</span>
+          </div>
+          <div class="scenario-meta">
+            <span class="duration">0.07s</span>
+          </div>
+        </div>
+        <div class="scenario-description">5阶段完整链路：配置检查&自动补齐 → 导入两个批次含拒绝覆盖 → 业务操作（创建/撤销/重提/审批/归档） → 对账导出交叉校验 → 跨重启状态保持</div>
+        
+        <div class="scenario-footer">
+          <span class="scenario-id">ID: S12</span>
+          <span class="scenario-time">2026-06-17 01:17:18</span>
         </div>
       </div>
     
@@ -351,353 +423,353 @@
       <div class="logs-container">
         
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">描述：验证同批数据多次重复导入后额度、冻结、流水保持一致，导出导入对账正确</span>
+        <span class="log-scenario">配置检查与自动补齐</span>
+        <span class="log-message">执行步骤：再次补齐（只补零额度）：给零额度项赋予有意义的值</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">执行步骤：初始化：导入基础预算</span>
+        <span class="log-scenario">配置检查与自动补齐</span>
+        <span class="log-message">步骤成功：再次补齐（只补零额度）：给零额度项赋予有意义的值</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">步骤成功：初始化：导入基础预算</span>
+        <span class="log-scenario">配置检查与自动补齐</span>
+        <span class="log-message">✅ 场景通过：配置检查与自动补齐</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">执行步骤：同批数据重复导入3次，结果完全一致</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">═══════ 开始场景：四类导入明细 ═══════</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">步骤成功：同批数据重复导入3次，结果完全一致</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">描述：导入结果明确区分成功、跳过重复、拒绝覆盖、失败原因四类明细，批次记录完整</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">执行步骤：重复导入后额度、冻结、流水一致性校验</span>
-      </div>
-    
-      <div class="log-entry debug">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">数据快照：重复导入前</span>
-      </div>
-    
-      <div class="log-entry debug">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">数据快照：重复导入后</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">执行步骤：初始化：先创建2条已有预算</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">步骤成功：重复导入后额度、冻结、流水一致性校验</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">步骤成功：初始化：先创建2条已有预算</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">执行步骤：导入导出对账：导出再导入，数据一致</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">执行步骤：导入混合CSV：成功/跳过/拒绝覆盖/失败 四类应有</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">步骤成功：导入导出对账：导出再导入，数据一致</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">步骤成功：导入混合CSV：成功/跳过/拒绝覆盖/失败 四类应有</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">重复导入一致性</span>
-        <span class="log-message">✅ 场景通过：重复导入一致性</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">执行步骤：验证四类明细字段完整</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">═══════ 开始场景：跨重启状态一致性 ═══════</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">步骤成功：验证四类明细字段完整</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">描述：复杂场景下（冻结/扣减/释放并存）重启后所有数据和计算逻辑完全一致</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">执行步骤：拒绝覆盖的数据未被修改</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">执行步骤：初始化复杂场景数据</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">步骤成功：拒绝覆盖的数据未被修改</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">执行步骤：验证批次记录保存完整</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">步骤成功：验证批次记录保存完整</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">执行步骤：允许覆盖模式：能覆盖已存在的预算</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">步骤成功：允许覆盖模式：能覆盖已存在的预算</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">四类导入明细</span>
+        <span class="log-message">✅ 场景通过：四类导入明细</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">═══════ 开始场景：对账导出与交叉校验 ═══════</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">描述：导出CSV/JSON对账数据，校验批次号、月份、部门、交易类型、额度变化与实际数据完全一致</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">执行步骤：初始化：创建预算 → 导入批次 → 报销审批产生流水</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
         <span class="log-message">数据已完全重置</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">步骤成功：初始化复杂场景数据</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">步骤成功：初始化：创建预算 → 导入批次 → 报销审批产生流水</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">执行步骤：保存重启前完整快照</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">执行步骤：导出对账数据（CSV格式）</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">步骤成功：导出对账数据（CSV格式）</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">执行步骤：导出对账数据（JSON格式）并校验结构</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">步骤成功：导出对账数据（JSON格式）并校验结构</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">执行步骤：对账数据交叉校验：批次、月份、部门、交易类型、额度变化一致</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">步骤成功：对账数据交叉校验：批次、月份、部门、交易类型、额度变化一致</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">执行步骤：对账数据关联导入批次号正确</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">步骤成功：对账数据关联导入批次号正确</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">对账导出与交叉校验</span>
+        <span class="log-message">✅ 场景通过：对账导出与交叉校验</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">═══════ 开始场景：完整端到端验收链路 ═══════</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">描述：5阶段完整链路：配置检查&自动补齐 → 导入两个批次含拒绝覆盖 → 业务操作（创建/撤销/重提/审批/归档） → 对账导出交叉校验 → 跨重启状态保持</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">执行步骤：STAGE 1: 初始化 → 检查配置 → 自动补齐</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">数据已完全重置</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">步骤成功：STAGE 1: 初始化 → 检查配置 → 自动补齐</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">执行步骤：STAGE 2: 导入预算（首次覆盖 + 二次含拒绝覆盖）</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">步骤成功：STAGE 2: 导入预算（首次覆盖 + 二次含拒绝覆盖）</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">执行步骤：STAGE 3: 业务操作（创建/撤销/重提/审批/归档）</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">步骤成功：STAGE 3: 业务操作（创建/撤销/重提/审批/归档）</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">执行步骤：STAGE 4: 导出对账，交叉校验数据完整性</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">步骤成功：STAGE 4: 导出对账，交叉校验数据完整性</span>
+      </div>
+    
+      <div class="log-entry info">
+        <span class="log-time">01:17:18</span>
+        <span class="log-level">[INFO]</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">执行步骤：STAGE 5: 模拟重启，跨重启状态保持验证</span>
       </div>
     
       <div class="log-entry debug">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">数据快照：重启前完整状态</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">数据快照：重启前</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">步骤成功：保存重启前完整快照</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">执行步骤：模拟重启（清除模块缓存重新加载）</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
+        <span class="log-scenario">完整端到端验收链路</span>
         <span class="log-message">模拟服务重启：重新加载数据模块</span>
       </div>
     
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">步骤成功：模拟重启（清除模块缓存重新加载）</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">执行步骤：验证重启后所有数据完全一致</span>
-      </div>
-    
       <div class="log-entry debug">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">数据快照：重启后完整状态</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">数据快照：重启后</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">步骤成功：验证重启后所有数据完全一致</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">步骤成功：STAGE 5: 模拟重启，跨重启状态保持验证</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">执行步骤：验证重启后各项计算正确</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">完整验收链路阶段汇总:</span>
       </div>
     
       <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
+        <span class="log-time">01:17:18</span>
         <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">步骤成功：验证重启后各项计算正确</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">执行步骤：验证重启后操作正常（可继续审批）</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">步骤成功：验证重启后操作正常（可继续审批）</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">跨重启状态一致性</span>
-        <span class="log-message">✅ 场景通过：跨重启状态一致性</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">═══════ 开始场景：撤销再提交回放 ═══════</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">描述：完整回放：创建→撤销→重提→审批→归档，验证额度变化、流水记录、冻结状态</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">执行步骤：初始化预算数据</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">数据已完全重置</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">步骤成功：初始化预算数据</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">执行步骤：完整回放：创建 → 撤销 → 重提 → 审批 → 归档</span>
-      </div>
-    
-      <div class="log-entry debug">
-        <span class="log-time">23:55:03</span>
-        <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">数据快照：创建后</span>
-      </div>
-    
-      <div class="log-entry debug">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">数据快照：撤销后</span>
-      </div>
-    
-      <div class="log-entry debug">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">数据快照：重提后</span>
-      </div>
-    
-      <div class="log-entry debug">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">数据快照：通过后</span>
-      </div>
-    
-      <div class="log-entry debug">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[DEBUG]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">数据快照：归档后</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">步骤成功：完整回放：创建 → 撤销 → 重提 → 审批 → 归档</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">执行步骤：验证各阶段额度变化正确</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">步骤成功：验证各阶段额度变化正确</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">执行步骤：验证流水记录完整（每一步都有对应流水）</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">步骤成功：验证流水记录完整（每一步都有对应流水）</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">执行步骤：验证冻结记录状态流转正确</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">步骤成功：验证冻结记录状态流转正确</span>
-      </div>
-    
-      <div class="log-entry info">
-        <span class="log-time">23:55:04</span>
-        <span class="log-level">[INFO]</span>
-        <span class="log-scenario">撤销再提交回放</span>
-        <span class="log-message">✅ 场景通过：撤销再提交回放</span>
+        <span class="log-scenario">完整端到端验收链路</span>
+        <span class="log-message">✅ 场景通过：完整端到端验收链路</span>
       </div>
     
       </div>

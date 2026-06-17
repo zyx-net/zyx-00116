@@ -3,9 +3,10 @@ const store = require('./store');
 const {
   USERS, DEPARTMENTS, DEPARTMENT_LABEL, EXPENSE_CATEGORIES,
   BUDGET_TRANSACTION_TYPES, BUDGET_TRANSACTION_TYPE_LABEL,
-  BUDGET_FREEZE_STATUS,
-  loadData, saveData, genId, nowISO, getCurrentMonth, getMonthFromDate,
-  normalizeBudget, normalizeBudgetFreeze, normalizeBudgetTransaction
+  BUDGET_FREEZE_STATUS, STATUS, STATUS_LABEL,
+  loadData, saveData, genId, nowISO, getMonthFromDate, getCurrentMonth,
+  normalizeBudget, normalizeBudgetFreeze, normalizeBudgetTransaction,
+  normalizeImportBatch
 } = store;
 
 function assertRole(userId, allowedRoles) {
@@ -591,7 +592,7 @@ function parseCSV(content) {
   return { headers, rows };
 }
 
-function importBudgetsFromCSV(csvContent, operatorId) {
+function importBudgetsFromCSV(csvContent, operatorId, options = {}) {
   assertRole(operatorId, ['admin', 'finance']);
   const { headers, rows } = parseCSV(csvContent);
 
@@ -601,9 +602,15 @@ function importBudgetsFromCSV(csvContent, operatorId) {
     throw new Error(`CSV缺少必填字段：${missing.join('、')}。需要字段：${requiredFields.join('、')}`);
   }
 
+  const allowOverride = options.allowOverride === true;
+  const fileName = options.fileName || 'import.csv';
+  const remark = options.remark || '';
+
   const data = loadData();
-  const results = { success: [], failed: [], skipped: [] };
+  const results = { success: [], failed: [], skipped: [], rejected: [] };
   const seenKeys = new Set();
+  let totalAmount = 0;
+  let batchMonth = '';
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -612,14 +619,16 @@ function importBudgetsFromCSV(csvContent, operatorId) {
       const month = row.month?.trim();
       const departmentId = row.departmentId?.trim();
       const category = row.category?.trim();
-      const totalAmount = parseFloat(row.totalAmount);
+      const totalAmountVal = parseFloat(row.totalAmount);
 
       if (!month || !departmentId || !category) {
         throw new Error('月份、部门、费用科目不能为空');
       }
-      if (isNaN(totalAmount) || totalAmount < 0) {
+      if (isNaN(totalAmountVal) || totalAmountVal < 0) {
         throw new Error('预算额度必须为非负数字');
       }
+
+      if (!batchMonth) batchMonth = month;
 
       const key = `${month}-${departmentId}-${category}`;
       if (seenKeys.has(key)) {
@@ -633,11 +642,32 @@ function importBudgetsFromCSV(csvContent, operatorId) {
       );
 
       if (existing) {
-        results.skipped.push({
-          line: lineNum,
-          key,
-          reason: `预算已存在（当前额度 ${existing.totalAmount.toFixed(2)} 元），已跳过，如需修改请使用调整功能`
-        });
+        if (allowOverride) {
+          const oldTotal = existing.totalAmount;
+          existing.totalAmount = totalAmountVal;
+          bumpBudgetVersion(existing);
+          addTransaction(data, {
+            budgetId: existing.id,
+            type: BUDGET_TRANSACTION_TYPES.ADJUST,
+            amount: totalAmountVal - oldTotal,
+            balanceAfter: computeAvailable(existing),
+            operatorId,
+            operatorName: getUserInfo(operatorId)?.name || '系统',
+            remark: `导入覆盖：${month} ${getDepartmentName(departmentId)} ${category}，${oldTotal.toFixed(2)} → ${totalAmountVal.toFixed(2)} 元`
+          });
+          results.success.push({
+            line: lineNum, key, budgetId: existing.id, totalAmount: totalAmountVal,
+            overridden: true, oldTotal
+          });
+          totalAmount += totalAmountVal;
+        } else {
+          results.rejected.push({
+            line: lineNum,
+            key,
+            reason: `预算已存在（当前额度 ${existing.totalAmount.toFixed(2)} 元），拒绝覆盖。如需覆盖请勾选"允许覆盖已有预算"`,
+            existingAmount: existing.totalAmount
+          });
+        }
         continue;
       }
 
@@ -648,7 +678,7 @@ function importBudgetsFromCSV(csvContent, operatorId) {
         departmentId,
         departmentName: deptName,
         category,
-        totalAmount,
+        totalAmount: totalAmountVal,
         usedAmount: 0,
         frozenAmount: 0,
         version: 1,
@@ -660,21 +690,48 @@ function importBudgetsFromCSV(csvContent, operatorId) {
       addTransaction(data, {
         budgetId: budget.id,
         type: BUDGET_TRANSACTION_TYPES.IMPORT,
-        amount: totalAmount,
+        amount: totalAmountVal,
         balanceAfter: computeAvailable(budget),
         operatorId,
         operatorName: getUserInfo(operatorId)?.name || '系统',
-        remark: `CSV导入：${month} ${deptName} ${category}，额度 ${totalAmount.toFixed(2)} 元`
+        remark: `CSV导入：${month} ${deptName} ${category}，额度 ${totalAmountVal.toFixed(2)} 元`
       });
 
-      results.success.push({ line: lineNum, key, budgetId: budget.id, totalAmount });
+      results.success.push({ line: lineNum, key, budgetId: budget.id, totalAmount: totalAmountVal });
+      totalAmount += totalAmountVal;
     } catch (e) {
       results.failed.push({ line: lineNum, row, error: e.message });
     }
   }
 
+  const batchId = genId(data, 'BATCH');
+  const now = nowISO();
+  const batch = normalizeImportBatch({
+    id: batchId,
+    batchNo: `BATCH${new Date(now).getFullYear()}${String(new Date(now).getMonth() + 1).padStart(2, '0')}${String(new Date(now).getDate()).padStart(2, '0')}${String(data.importBatches.length + 1).padStart(3, '0')}`,
+    fileName,
+    totalRows: rows.length,
+    successCount: results.success.length,
+    skippedCount: results.skipped.length,
+    rejectedCount: results.rejected.length,
+    failedCount: results.failed.length,
+    totalAmount,
+    operatorId,
+    operatorName: getUserInfo(operatorId)?.name || '系统',
+    month: batchMonth,
+    remark,
+    importedAt: now,
+    details: {
+      success: results.success,
+      skipped: results.skipped,
+      rejected: results.rejected,
+      failed: results.failed
+    }
+  });
+  data.importBatches.push(batch);
+
   saveData(data);
-  return results;
+  return { ...results, batch, batchId: batch.id, batchNo: batch.batchNo };
 }
 
 function exportBudgetsToCSV(filter = {}) {
@@ -783,8 +840,399 @@ function resetAllBudgets() {
   data.budgets = [];
   data.budgetFreezes = [];
   data.budgetTransactions = [];
+  data.importBatches = [];
   saveData(data);
   return { ok: true };
+}
+
+function checkBudgetConfig(month, options = {}) {
+  const targetMonth = month || getCurrentMonth();
+  const data = loadData();
+  const departments = options.departments || DEPARTMENTS.map(d => d.id);
+  const categories = options.categories || EXPENSE_CATEGORIES;
+
+  const existingKeys = new Set(
+    data.budgets
+      .filter(b => b.month === targetMonth)
+      .map(b => `${b.departmentId}-${b.category}`)
+  );
+
+  const missing = [];
+  const existing = [];
+
+  for (const deptId of departments) {
+    for (const cat of categories) {
+      const key = `${deptId}-${cat}`;
+      const budget = data.budgets.find(
+        b => b.month === targetMonth && b.departmentId === deptId && b.category === cat
+      );
+      if (budget) {
+        existing.push({
+          month: targetMonth,
+          departmentId: deptId,
+          departmentName: getDepartmentName(deptId),
+          category: cat,
+          totalAmount: budget.totalAmount,
+          availableAmount: computeAvailable(budget),
+          status: budget.totalAmount > 0 ? 'configured' : 'zero',
+          budgetId: budget.id
+        });
+      } else {
+        missing.push({
+          month: targetMonth,
+          departmentId: deptId,
+          departmentName: getDepartmentName(deptId),
+          category: cat,
+          suggestion: `请在预算管理中为 ${targetMonth} 月 ${getDepartmentName(deptId)} 的【${cat}】配置预算额度`
+        });
+      }
+    }
+  }
+
+  const totalCombinations = departments.length * categories.length;
+  const coverageRate = totalCombinations > 0
+    ? ((existing.length / totalCombinations) * 100).toFixed(1) + '%'
+    : '0%';
+
+  return {
+    month: targetMonth,
+    totalCombinations,
+    configuredCount: existing.length,
+    missingCount: missing.length,
+    coverageRate,
+    isComplete: missing.length === 0,
+    missing,
+    existing,
+    zeroAmountBudgets: existing.filter(e => e.status === 'zero')
+  };
+}
+
+function autoSetupBudgets(month, operatorId, options = {}) {
+  assertRole(operatorId, ['admin', 'finance']);
+  const targetMonth = month || getCurrentMonth();
+  const defaultAmount = options.defaultAmount || 0;
+  const onlyZero = options.onlyZero === true;
+  const deptAmounts = options.deptAmounts || {};
+  const categoryAmounts = options.categoryAmounts || {};
+
+  const config = checkBudgetConfig(targetMonth);
+  const data = loadData();
+  const created = [];
+  const updated = [];
+
+  if (!onlyZero) {
+    for (const item of config.missing) {
+      let amount = defaultAmount;
+      if (deptAmounts[item.departmentId]) amount = deptAmounts[item.departmentId];
+      if (categoryAmounts[item.category]) amount = categoryAmounts[item.category];
+
+      const deptName = getDepartmentName(item.departmentId);
+      const budget = normalizeBudget({
+        id: genId(data, 'BG'),
+        month: targetMonth,
+        departmentId: item.departmentId,
+        departmentName: deptName,
+        category: item.category,
+        totalAmount: amount,
+        usedAmount: 0,
+        frozenAmount: 0,
+        version: 1,
+        createdAt: nowISO(),
+        updatedAt: nowISO()
+      });
+      data.budgets.push(budget);
+
+      addTransaction(data, {
+        budgetId: budget.id,
+        type: BUDGET_TRANSACTION_TYPES.ALLOCATE,
+        amount: amount,
+        balanceAfter: computeAvailable(budget),
+        operatorId,
+        operatorName: getUserInfo(operatorId)?.name || '系统',
+        remark: `自动补齐预算：${targetMonth} ${deptName} ${item.category}，额度 ${amount.toFixed(2)} 元`
+      });
+
+      created.push({
+        budgetId: budget.id,
+        month: targetMonth,
+        departmentId: item.departmentId,
+        departmentName: deptName,
+        category: item.category,
+        totalAmount: amount
+      });
+    }
+  }
+
+  for (const item of config.zeroAmountBudgets) {
+    let amount = defaultAmount;
+    if (deptAmounts[item.departmentId]) amount = deptAmounts[item.departmentId];
+    if (categoryAmounts[item.category]) amount = categoryAmounts[item.category];
+    if (amount <= 0) continue;
+
+    const budget = data.budgets.find(b => b.id === item.budgetId);
+    if (budget) {
+      const oldTotal = budget.totalAmount;
+      budget.totalAmount = amount;
+      bumpBudgetVersion(budget);
+
+      addTransaction(data, {
+        budgetId: budget.id,
+        type: BUDGET_TRANSACTION_TYPES.ADJUST,
+        amount: amount - oldTotal,
+        balanceAfter: computeAvailable(budget),
+        operatorId,
+        operatorName: getUserInfo(operatorId)?.name || '系统',
+        remark: `自动补齐零额度预算：${targetMonth} ${item.departmentName} ${item.category}，${oldTotal.toFixed(2)} → ${amount.toFixed(2)} 元`
+      });
+
+      updated.push({
+        budgetId: budget.id,
+        month: targetMonth,
+        departmentId: item.departmentId,
+        departmentName: item.departmentName,
+        category: item.category,
+        oldTotal,
+        totalAmount: amount
+      });
+    }
+  }
+
+  saveData(data);
+  return {
+    month: targetMonth,
+    createdCount: created.length,
+    updatedCount: updated.length,
+    created,
+    updated
+  };
+}
+
+function listImportBatches(filter = {}) {
+  const data = loadData();
+  let list = [...data.importBatches];
+  if (filter.month) list = list.filter(b => b.month === filter.month);
+  if (filter.operatorId) list = list.filter(b => b.operatorId === filter.operatorId);
+  list.sort((a, b) => new Date(b.importedAt) - new Date(a.importedAt));
+  return list.map(b => ({
+    id: b.id,
+    batchNo: b.batchNo,
+    fileName: b.fileName,
+    totalRows: b.totalRows,
+    successCount: b.successCount,
+    skippedCount: b.skippedCount,
+    rejectedCount: b.rejectedCount,
+    failedCount: b.failedCount,
+    totalAmount: b.totalAmount,
+    operatorId: b.operatorId,
+    operatorName: b.operatorName,
+    month: b.month,
+    remark: b.remark,
+    importedAt: b.importedAt
+  }));
+}
+
+function getImportBatch(id) {
+  const data = loadData();
+  const b = data.importBatches.find(x => x.id === id);
+  if (!b) return null;
+  return b;
+}
+
+function exportReconcile(filter = {}) {
+  const data = loadData();
+  const result = [];
+
+  const budgets = filter.month
+    ? data.budgets.filter(b => b.month === filter.month)
+    : data.budgets;
+
+  const relevantBatchIds = new Set();
+  for (const budget of budgets) {
+    const txList = data.budgetTransactions
+      .filter(t => t.budgetId === budget.id)
+      .sort((a, b) => new Date(a.operatedAt) - new Date(b.operatedAt));
+
+    let runningTotal = 0;
+    let runningUsed = 0;
+    let runningFrozen = 0;
+
+    for (const tx of txList) {
+      const importBatch = data.importBatches.find(b => {
+        if (!b.details || !b.details.success) return false;
+        return b.details.success.some(s => s.budgetId === budget.id);
+      });
+      if (importBatch) relevantBatchIds.add(importBatch.id);
+
+      switch (tx.type) {
+        case BUDGET_TRANSACTION_TYPES.ALLOCATE:
+        case BUDGET_TRANSACTION_TYPES.IMPORT:
+          runningTotal += tx.amount;
+          break;
+        case BUDGET_TRANSACTION_TYPES.ADJUST:
+          runningTotal += tx.amount;
+          break;
+        case BUDGET_TRANSACTION_TYPES.FREEZE:
+          runningFrozen += tx.amount;
+          break;
+        case BUDGET_TRANSACTION_TYPES.DEDUCT:
+          runningFrozen -= tx.amount;
+          runningUsed += tx.amount;
+          break;
+        case BUDGET_TRANSACTION_TYPES.RELEASE:
+          runningFrozen += tx.amount;
+          break;
+      }
+
+      result.push({
+        batchNo: importBatch ? importBatch.batchNo : '-',
+        batchId: importBatch ? importBatch.id : '-',
+        budgetId: budget.id,
+        month: budget.month,
+        departmentId: budget.departmentId,
+        departmentName: getDepartmentName(budget.departmentId),
+        category: budget.category,
+        transactionId: tx.id,
+        transactionType: tx.type,
+        transactionTypeLabel: BUDGET_TRANSACTION_TYPE_LABEL[tx.type] || tx.type,
+        amount: tx.amount,
+        balanceAfter: tx.balanceAfter,
+        runningTotal: Number(runningTotal.toFixed(2)),
+        runningUsed: Number(runningUsed.toFixed(2)),
+        runningFrozen: Number(runningFrozen.toFixed(2)),
+        runningAvailable: Number((runningTotal - runningUsed - runningFrozen).toFixed(2)),
+        reimbursementId: tx.reimbursementId || '-',
+        operatorId: tx.operatorId,
+        operatorName: tx.operatorName,
+        remark: tx.remark,
+        operatedAt: tx.operatedAt
+      });
+    }
+  }
+
+  return result;
+}
+
+function exportReconcileToCSV(filter = {}) {
+  const records = exportReconcile(filter);
+  const headers = [
+    'batchNo', 'batchId', 'budgetId', 'month', 'departmentId', 'departmentName',
+    'category', 'transactionId', 'transactionType', 'transactionTypeLabel',
+    'amount', 'balanceAfter', 'runningTotal', 'runningUsed', 'runningFrozen',
+    'runningAvailable', 'reimbursementId', 'operatorId', 'operatorName',
+    'remark', 'operatedAt'
+  ];
+
+  const lines = [headers.join(',')];
+  for (const r of records) {
+    const row = headers.map(h => {
+      let val = r[h];
+      if (typeof val === 'number') {
+        val = val.toFixed(2);
+      }
+      if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
+        val = `"${val.replace(/"/g, '""')}"`;
+      }
+      return val !== undefined ? val : '';
+    });
+    lines.push(row.join(','));
+  }
+  return lines.join('\n');
+}
+
+function exportReconcileToJSON(filter = {}) {
+  const records = exportReconcile(filter);
+  const summary = {};
+
+  for (const r of records) {
+    const key = `${r.month}-${r.departmentId}-${r.category}`;
+    if (!summary[key]) {
+      summary[key] = {
+        month: r.month,
+        departmentId: r.departmentId,
+        departmentName: r.departmentName,
+        category: r.category,
+        finalTotal: 0,
+        finalUsed: 0,
+        finalFrozen: 0,
+        finalAvailable: 0,
+        transactionCount: 0,
+        batches: new Set()
+      };
+    }
+    summary[key].finalTotal = r.runningTotal;
+    summary[key].finalUsed = r.runningUsed;
+    summary[key].finalFrozen = r.runningFrozen;
+    summary[key].finalAvailable = r.runningAvailable;
+    summary[key].transactionCount++;
+    if (r.batchNo !== '-') summary[key].batches.add(r.batchNo);
+  }
+
+  const summaryList = Object.values(summary).map(s => ({
+    ...s,
+    batches: Array.from(s.batches)
+  }));
+
+  return JSON.stringify({
+    exportTime: nowISO(),
+    filter,
+    totalRecords: records.length,
+    summaryCount: summaryList.length,
+    summary: summaryList,
+    details: records
+  }, null, 2);
+}
+
+function validateReimbursementLogConsistency(reimbursementId) {
+  const data = loadData();
+  const r = data.reimbursements.find(x => x.id === reimbursementId);
+  if (!r) return { valid: false, error: '报销单不存在' };
+
+  const logs = data.operationLogs.filter(l => l.reimbursementId === reimbursementId);
+  const budgetTx = data.budgetTransactions.filter(t => t.reimbursementId === reimbursementId);
+  const issues = [];
+
+  if (r.status === STATUS.WITHDRAWN) {
+    const hasRelease = budgetTx.some(t => t.type === BUDGET_TRANSACTION_TYPES.RELEASE);
+    if (!hasRelease) {
+      issues.push('已撤销的报销单缺少预算释放流水');
+    }
+    const withdrawLog = logs.find(l => l.action === 'withdraw');
+    if (!withdrawLog) {
+      issues.push('已撤销的报销单缺少撤销操作日志');
+    }
+  }
+
+  if (r.status === STATUS.APPROVED || r.status === STATUS.ARCHIVED) {
+    const hasDeduct = budgetTx.some(t => t.type === BUDGET_TRANSACTION_TYPES.DEDUCT);
+    if (!hasDeduct) {
+      issues.push('已通过/归档的报销单缺少预算扣减流水');
+    }
+  }
+
+  const expectedTxTypes = [];
+  const statuses = logs.map(l => l.action);
+  if (statuses.includes('create')) expectedTxTypes.push(BUDGET_TRANSACTION_TYPES.FREEZE);
+  if (statuses.includes('withdraw')) expectedTxTypes.push(BUDGET_TRANSACTION_TYPES.RELEASE);
+  if (statuses.includes('reject')) expectedTxTypes.push(BUDGET_TRANSACTION_TYPES.RELEASE);
+  if (statuses.filter(s => s === 'approve').length >= 2) {
+    expectedTxTypes.push(BUDGET_TRANSACTION_TYPES.DEDUCT);
+  }
+
+  const actualTxTypes = budgetTx.map(t => t.type);
+  for (const expected of expectedTxTypes) {
+    if (!actualTxTypes.includes(expected)) {
+      issues.push(`缺少预期的流水类型：${BUDGET_TRANSACTION_TYPE_LABEL[expected] || expected}`);
+    }
+  }
+
+  return {
+    valid: issues.length === 0,
+    reimbursementId,
+    status: r.status,
+    logCount: logs.length,
+    transactionCount: budgetTx.length,
+    issues
+  };
 }
 
 module.exports = {
@@ -808,6 +1256,14 @@ module.exports = {
   exportTransactionsToCSV,
   reconcileBudgets,
   resetAllBudgets,
+  checkBudgetConfig,
+  autoSetupBudgets,
+  listImportBatches,
+  getImportBatch,
+  exportReconcile,
+  exportReconcileToCSV,
+  exportReconcileToJSON,
+  validateReimbursementLogConsistency,
   computeAvailable,
   getDepartmentName,
   getUserInfo,

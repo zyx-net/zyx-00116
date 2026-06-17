@@ -235,6 +235,33 @@ function normalizeBudgetTransaction(t) {
   };
 }
 
+function normalizeImportBatch(b) {
+  const now = nowISO();
+  const d = b.details || {};
+  return {
+    id: b.id || '',
+    batchNo: b.batchNo || '',
+    fileName: b.fileName || '',
+    totalRows: Number(b.totalRows) || 0,
+    successCount: Number(b.successCount) || 0,
+    skippedCount: Number(b.skippedCount) || 0,
+    rejectedCount: Number(b.rejectedCount) || 0,
+    failedCount: Number(b.failedCount) || 0,
+    totalAmount: Number(b.totalAmount) || 0,
+    operatorId: b.operatorId || '',
+    operatorName: b.operatorName || '未知',
+    month: b.month || '',
+    remark: b.remark || '',
+    importedAt: b.importedAt || now,
+    details: {
+      success: Array.isArray(d.success) ? d.success : [],
+      skipped: Array.isArray(d.skipped) ? d.skipped : [],
+      rejected: Array.isArray(d.rejected) ? d.rejected : [],
+      failed: Array.isArray(d.failed) ? d.failed : []
+    }
+  };
+}
+
 function normalizeData(data) {
   if (!data) {
     data = { reimbursements: [], reminders: [], operationLogs: [], seq: 1000 };
@@ -246,6 +273,7 @@ function normalizeData(data) {
     budgets: (data.budgets || []).map(normalizeBudget),
     budgetFreezes: (data.budgetFreezes || []).map(normalizeBudgetFreeze),
     budgetTransactions: (data.budgetTransactions || []).map(normalizeBudgetTransaction),
+    importBatches: (data.importBatches || []).map(normalizeImportBatch),
     seq: data.seq || 1000
   };
 }
@@ -260,6 +288,7 @@ function loadData() {
       budgets: [],
       budgetFreezes: [],
       budgetTransactions: [],
+      importBatches: [],
       seq: 1000
     };
     fs.writeFileSync(DATA_FILE, JSON.stringify(initial, null, 2), 'utf8');
@@ -342,5 +371,6 @@ module.exports = {
   matchAttachmentToMissing,
   normalizeData, normalizeReimbursement, normalizeReminder, normalizeOperationLog,
   normalizeSupplementRound, normalizeBudget, normalizeBudgetFreeze, normalizeBudgetTransaction,
+  normalizeImportBatch,
   DATA_DIR, DATA_FILE
 };
