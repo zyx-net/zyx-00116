@@ -15,10 +15,10 @@
       "supplementCycle": 0,
       "lastSupplementAt": null,
       "supplementRounds": [],
-      "createdAt": "2026-06-17T01:51:57.022Z",
-      "updatedAt": "2026-06-17T01:51:57.074Z",
+      "createdAt": "2026-06-17T03:41:45.409Z",
+      "updatedAt": "2026-06-17T03:41:45.446Z",
       "version": 4,
-      "archivedAt": "2026-06-17T01:51:57.074Z",
+      "archivedAt": "2026-06-17T03:41:45.446Z",
       "archivedBy": "u4",
       "withdrawReason": null,
       "withdrawnAt": null,
@@ -39,10 +39,10 @@
       "supplementCycle": 0,
       "lastSupplementAt": null,
       "supplementRounds": [],
-      "createdAt": "2026-06-17T01:51:57.026Z",
-      "updatedAt": "2026-06-17T01:51:57.081Z",
+      "createdAt": "2026-06-17T03:41:45.412Z",
+      "updatedAt": "2026-06-17T03:41:45.449Z",
       "version": 6,
-      "archivedAt": "2026-06-17T01:51:57.081Z",
+      "archivedAt": "2026-06-17T03:41:45.449Z",
       "archivedBy": "u4",
       "withdrawReason": null,
       "withdrawnAt": null,
@@ -63,8 +63,8 @@
       "supplementCycle": 0,
       "lastSupplementAt": null,
       "supplementRounds": [],
-      "createdAt": "2026-06-17T01:51:57.032Z",
-      "updatedAt": "2026-06-17T01:51:57.070Z",
+      "createdAt": "2026-06-17T03:41:45.415Z",
+      "updatedAt": "2026-06-17T03:41:45.443Z",
       "version": 3,
       "archivedAt": null,
       "archivedBy": null,
@@ -83,7 +83,7 @@
       "operatorRole": "applicant",
       "action": "create",
       "remark": "创建报销单",
-      "operatedAt": "2026-06-17T01:51:57.022Z"
+      "operatedAt": "2026-06-17T03:41:45.409Z"
     },
     {
       "id": "LOG1098",
@@ -93,7 +93,7 @@
       "operatorRole": "applicant",
       "action": "create",
       "remark": "创建报销单",
-      "operatedAt": "2026-06-17T01:51:57.026Z"
+      "operatedAt": "2026-06-17T03:41:45.412Z"
     },
     {
       "id": "LOG1102",
@@ -103,7 +103,7 @@
       "operatorRole": "applicant",
       "action": "create",
       "remark": "创建报销单",
-      "operatedAt": "2026-06-17T01:51:57.032Z"
+      "operatedAt": "2026-06-17T03:41:45.415Z"
     },
     {
       "id": "LOG1105",
@@ -113,7 +113,7 @@
       "operatorRole": "applicant",
       "action": "withdraw",
       "remark": "申请人撤销报销单，原因：金额填错，撤销修改",
-      "operatedAt": "2026-06-17T01:51:57.037Z"
+      "operatedAt": "2026-06-17T03:41:45.418Z"
     },
     {
       "id": "LOG1107",
@@ -123,7 +123,7 @@
       "operatorRole": "applicant",
       "action": "budget_release",
       "remark": "预算已释放：金额 3500.00 元，原因：申请人撤销",
-      "operatedAt": "2026-06-17T01:51:57.037Z"
+      "operatedAt": "2026-06-17T03:41:45.418Z"
     },
     {
       "id": "LOG1110",
@@ -133,7 +133,7 @@
       "operatorRole": "applicant",
       "action": "resubmit",
       "remark": "重新提交报销单",
-      "operatedAt": "2026-06-17T01:51:57.041Z"
+      "operatedAt": "2026-06-17T03:41:45.422Z"
     },
     {
       "id": "LOG1111",
@@ -143,7 +143,7 @@
       "operatorRole": "auditor",
       "action": "approve_audit",
       "remark": "初审通过，进入财务复核",
-      "operatedAt": "2026-06-17T01:51:57.046Z"
+      "operatedAt": "2026-06-17T03:41:45.425Z"
     },
     {
       "id": "LOG1112",
@@ -153,7 +153,7 @@
       "operatorRole": "finance",
       "action": "approve_finance",
       "remark": "财务复核通过",
-      "operatedAt": "2026-06-17T01:51:57.051Z"
+      "operatedAt": "2026-06-17T03:41:45.428Z"
     },
     {
       "id": "LOG1114",
@@ -163,7 +163,7 @@
       "operatorRole": "finance",
       "action": "budget_deduct",
       "remark": "预算已扣减：金额 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.051Z"
+      "operatedAt": "2026-06-17T03:41:45.428Z"
     },
     {
       "id": "LOG1115",
@@ -173,7 +173,7 @@
       "operatorRole": "auditor",
       "action": "approve_audit",
       "remark": "初审通过，进入财务复核",
-      "operatedAt": "2026-06-17T01:51:57.056Z"
+      "operatedAt": "2026-06-17T03:41:45.432Z"
     },
     {
       "id": "LOG1116",
@@ -183,7 +183,7 @@
       "operatorRole": "finance",
       "action": "approve_finance",
       "remark": "财务复核通过",
-      "operatedAt": "2026-06-17T01:51:57.060Z"
+      "operatedAt": "2026-06-17T03:41:45.435Z"
     },
     {
       "id": "LOG1118",
@@ -193,7 +193,7 @@
       "operatorRole": "finance",
       "action": "budget_deduct",
       "remark": "预算已扣减：金额 3500.00 元",
-      "operatedAt": "2026-06-17T01:51:57.060Z"
+      "operatedAt": "2026-06-17T03:41:45.435Z"
     },
     {
       "id": "LOG1119",
@@ -203,7 +203,7 @@
       "operatorRole": "auditor",
       "action": "approve_audit",
       "remark": "初审通过，进入财务复核",
-      "operatedAt": "2026-06-17T01:51:57.065Z"
+      "operatedAt": "2026-06-17T03:41:45.439Z"
     },
     {
       "id": "LOG1120",
@@ -213,7 +213,7 @@
       "operatorRole": "finance",
       "action": "approve_finance",
       "remark": "财务复核通过",
-      "operatedAt": "2026-06-17T01:51:57.070Z"
+      "operatedAt": "2026-06-17T03:41:45.443Z"
     },
     {
       "id": "LOG1122",
@@ -223,7 +223,7 @@
       "operatorRole": "finance",
       "action": "budget_deduct",
       "remark": "预算已扣减：金额 2000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.070Z"
+      "operatedAt": "2026-06-17T03:41:45.443Z"
     },
     {
       "id": "LOG1123",
@@ -233,7 +233,7 @@
       "operatorRole": "archiver",
       "action": "archive",
       "remark": "已归档",
-      "operatedAt": "2026-06-17T01:51:57.074Z"
+      "operatedAt": "2026-06-17T03:41:45.446Z"
     },
     {
       "id": "LOG1124",
@@ -243,7 +243,7 @@
       "operatorRole": "archiver",
       "action": "archive",
       "remark": "已归档",
-      "operatedAt": "2026-06-17T01:51:57.081Z"
+      "operatedAt": "2026-06-17T03:41:45.449Z"
     }
   ],
   "budgets": [
@@ -257,8 +257,8 @@
       "usedAmount": 8000,
       "frozenAmount": 0,
       "version": 5,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.051Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.428Z"
     },
     {
       "id": "BG1003",
@@ -270,8 +270,8 @@
       "usedAmount": 3500,
       "frozenAmount": 0,
       "version": 7,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.060Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.435Z"
     },
     {
       "id": "BG1005",
@@ -283,8 +283,8 @@
       "usedAmount": 2000,
       "frozenAmount": 0,
       "version": 4,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.070Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.443Z"
     },
     {
       "id": "BG1007",
@@ -296,8 +296,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1009",
@@ -309,8 +309,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1011",
@@ -322,8 +322,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1013",
@@ -335,8 +335,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1015",
@@ -348,8 +348,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 3,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.016Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BG1017",
@@ -361,8 +361,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1019",
@@ -374,8 +374,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 3,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.016Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BG1021",
@@ -387,8 +387,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1023",
@@ -400,8 +400,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1025",
@@ -413,8 +413,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1027",
@@ -426,8 +426,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1029",
@@ -439,8 +439,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.403Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1031",
@@ -452,8 +452,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1033",
@@ -465,8 +465,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1035",
@@ -478,8 +478,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1037",
@@ -491,8 +491,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1039",
@@ -504,8 +504,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 3,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.016Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BG1041",
@@ -517,8 +517,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1043",
@@ -530,8 +530,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1045",
@@ -543,8 +543,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1047",
@@ -556,8 +556,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1049",
@@ -569,8 +569,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1051",
@@ -582,8 +582,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 3,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.016Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BG1053",
@@ -595,8 +595,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BG1055",
@@ -608,8 +608,8 @@
       "usedAmount": 0,
       "frozenAmount": 0,
       "version": 2,
-      "createdAt": "2026-06-17T01:51:57.010Z",
-      "updatedAt": "2026-06-17T01:51:57.013Z"
+      "createdAt": "2026-06-17T03:41:45.404Z",
+      "updatedAt": "2026-06-17T03:41:45.405Z"
     }
   ],
   "budgetFreezes": [
@@ -622,8 +622,8 @@
       "category": "差旅费",
       "amount": 8000,
       "status": "deducted",
-      "frozenAt": "2026-06-17T01:51:57.022Z",
-      "updatedAt": "2026-06-17T01:51:57.051Z",
+      "frozenAt": "2026-06-17T03:41:45.410Z",
+      "updatedAt": "2026-06-17T03:41:45.428Z",
       "version": 2
     },
     {
@@ -635,8 +635,8 @@
       "category": "办公费",
       "amount": 3500,
       "status": "released",
-      "frozenAt": "2026-06-17T01:51:57.026Z",
-      "updatedAt": "2026-06-17T01:51:57.037Z",
+      "frozenAt": "2026-06-17T03:41:45.412Z",
+      "updatedAt": "2026-06-17T03:41:45.418Z",
       "version": 2
     },
     {
@@ -648,8 +648,8 @@
       "category": "招待费",
       "amount": 2000,
       "status": "deducted",
-      "frozenAt": "2026-06-17T01:51:57.032Z",
-      "updatedAt": "2026-06-17T01:51:57.070Z",
+      "frozenAt": "2026-06-17T03:41:45.415Z",
+      "updatedAt": "2026-06-17T03:41:45.443Z",
       "version": 2
     },
     {
@@ -661,8 +661,8 @@
       "category": "办公费",
       "amount": 3500,
       "status": "deducted",
-      "frozenAt": "2026-06-17T01:51:57.041Z",
-      "updatedAt": "2026-06-17T01:51:57.060Z",
+      "frozenAt": "2026-06-17T03:41:45.422Z",
+      "updatedAt": "2026-06-17T03:41:45.435Z",
       "version": 2
     }
   ],
@@ -677,7 +677,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 研发部 差旅费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1004",
@@ -689,7 +689,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 研发部 办公费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1006",
@@ -701,7 +701,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 研发部 招待费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1008",
@@ -713,7 +713,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 研发部 通讯费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1010",
@@ -725,7 +725,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 研发部 交通费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1012",
@@ -737,7 +737,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 研发部 培训费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1014",
@@ -749,7 +749,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 研发部 其他，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1016",
@@ -761,7 +761,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 市场部 差旅费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1018",
@@ -773,7 +773,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 市场部 办公费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1020",
@@ -785,7 +785,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 市场部 招待费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1022",
@@ -797,7 +797,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 市场部 通讯费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1024",
@@ -809,7 +809,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 市场部 交通费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1026",
@@ -821,7 +821,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 市场部 培训费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1028",
@@ -833,7 +833,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 市场部 其他，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.403Z"
     },
     {
       "id": "BGT1030",
@@ -845,7 +845,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 财务部 差旅费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1032",
@@ -857,7 +857,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 财务部 办公费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1034",
@@ -869,7 +869,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 财务部 招待费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1036",
@@ -881,7 +881,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 财务部 通讯费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1038",
@@ -893,7 +893,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 财务部 交通费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1040",
@@ -905,7 +905,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 财务部 培训费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1042",
@@ -917,7 +917,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 财务部 其他，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1044",
@@ -929,7 +929,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 行政部 差旅费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1046",
@@ -941,7 +941,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 行政部 办公费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1048",
@@ -953,7 +953,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 行政部 招待费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1050",
@@ -965,7 +965,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 行政部 通讯费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1052",
@@ -977,7 +977,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 行政部 交通费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1054",
@@ -989,7 +989,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 行政部 培训费，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1056",
@@ -1001,7 +1001,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐预算：2026-06 行政部 其他，额度 0.00 元",
-      "operatedAt": "2026-06-17T01:51:57.010Z"
+      "operatedAt": "2026-06-17T03:41:45.404Z"
     },
     {
       "id": "BGT1057",
@@ -1013,7 +1013,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 研发部 差旅费，0.00 → 5000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1058",
@@ -1025,7 +1025,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 研发部 办公费，0.00 → 20000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1059",
@@ -1037,7 +1037,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 研发部 招待费，0.00 → 3000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1060",
@@ -1049,7 +1049,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 研发部 通讯费，0.00 → 20000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1061",
@@ -1061,7 +1061,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 研发部 交通费，0.00 → 20000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1062",
@@ -1073,7 +1073,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 研发部 培训费，0.00 → 20000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1063",
@@ -1085,7 +1085,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 研发部 其他，0.00 → 20000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1064",
@@ -1097,7 +1097,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 市场部 差旅费，0.00 → 5000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1065",
@@ -1109,7 +1109,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 市场部 办公费，0.00 → 15000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1066",
@@ -1121,7 +1121,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 市场部 招待费，0.00 → 3000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1067",
@@ -1133,7 +1133,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 市场部 通讯费，0.00 → 15000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1068",
@@ -1145,7 +1145,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 市场部 交通费，0.00 → 15000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1069",
@@ -1157,7 +1157,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 市场部 培训费，0.00 → 15000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1070",
@@ -1169,7 +1169,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 市场部 其他，0.00 → 15000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1071",
@@ -1181,7 +1181,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 财务部 差旅费，0.00 → 5000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1072",
@@ -1193,7 +1193,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 财务部 办公费，0.00 → 10000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1073",
@@ -1205,7 +1205,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 财务部 招待费，0.00 → 3000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1074",
@@ -1217,7 +1217,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 财务部 通讯费，0.00 → 10000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1075",
@@ -1229,7 +1229,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 财务部 交通费，0.00 → 10000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1076",
@@ -1241,7 +1241,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 财务部 培训费，0.00 → 10000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1077",
@@ -1253,7 +1253,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 财务部 其他，0.00 → 10000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1078",
@@ -1265,7 +1265,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 行政部 差旅费，0.00 → 5000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1079",
@@ -1277,7 +1277,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 行政部 办公费，0.00 → 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1080",
@@ -1289,7 +1289,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 行政部 招待费，0.00 → 3000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1081",
@@ -1301,7 +1301,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 行政部 通讯费，0.00 → 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1082",
@@ -1313,7 +1313,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 行政部 交通费，0.00 → 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1083",
@@ -1325,7 +1325,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 行政部 培训费，0.00 → 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1084",
@@ -1337,7 +1337,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "自动补齐零额度预算：2026-06 行政部 其他，0.00 → 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.013Z"
+      "operatedAt": "2026-06-17T03:41:45.405Z"
     },
     {
       "id": "BGT1085",
@@ -1349,7 +1349,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "导入覆盖：2026-06 研发部 差旅费，5000.00 → 25000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.016Z"
+      "operatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BGT1086",
@@ -1361,7 +1361,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "导入覆盖：2026-06 研发部 办公费，20000.00 → 10000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.016Z"
+      "operatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BGT1087",
@@ -1373,7 +1373,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "导入覆盖：2026-06 市场部 差旅费，5000.00 → 18000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.016Z"
+      "operatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BGT1088",
@@ -1385,7 +1385,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "导入覆盖：2026-06 市场部 招待费，3000.00 → 5000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.016Z"
+      "operatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BGT1089",
@@ -1397,7 +1397,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "导入覆盖：2026-06 财务部 培训费，10000.00 → 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.016Z"
+      "operatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BGT1090",
@@ -1409,7 +1409,7 @@
       "operatorId": "u5",
       "operatorName": "系统管理员",
       "remark": "导入覆盖：2026-06 行政部 交通费，8000.00 → 3000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.016Z"
+      "operatedAt": "2026-06-17T03:41:45.407Z"
     },
     {
       "id": "BGT1096",
@@ -1421,7 +1421,7 @@
       "operatorId": "u1",
       "operatorName": "张三",
       "remark": "冻结预算：报销单 BX1093，金额 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.022Z"
+      "operatedAt": "2026-06-17T03:41:45.410Z"
     },
     {
       "id": "BGT1100",
@@ -1433,7 +1433,7 @@
       "operatorId": "u1",
       "operatorName": "张三",
       "remark": "冻结预算：报销单 BX1097，金额 3500.00 元",
-      "operatedAt": "2026-06-17T01:51:57.026Z"
+      "operatedAt": "2026-06-17T03:41:45.412Z"
     },
     {
       "id": "BGT1104",
@@ -1445,7 +1445,7 @@
       "operatorId": "u1",
       "operatorName": "张三",
       "remark": "冻结预算：报销单 BX1101，金额 2000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.032Z"
+      "operatedAt": "2026-06-17T03:41:45.415Z"
     },
     {
       "id": "BGT1106",
@@ -1457,7 +1457,7 @@
       "operatorId": "u1",
       "operatorName": "张三",
       "remark": "释放预算：报销单 BX1097，申请人撤销，原因：金额填错，撤销修改，金额 3500.00 元",
-      "operatedAt": "2026-06-17T01:51:57.037Z"
+      "operatedAt": "2026-06-17T03:41:45.418Z"
     },
     {
       "id": "BGT1109",
@@ -1469,7 +1469,7 @@
       "operatorId": "u1",
       "operatorName": "张三",
       "remark": "冻结预算：报销单 BX1097，金额 3500.00 元",
-      "operatedAt": "2026-06-17T01:51:57.041Z"
+      "operatedAt": "2026-06-17T03:41:45.422Z"
     },
     {
       "id": "BGT1113",
@@ -1481,7 +1481,7 @@
       "operatorId": "u3",
       "operatorName": "王五",
       "remark": "扣减预算：报销单 BX1093，金额 8000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.051Z"
+      "operatedAt": "2026-06-17T03:41:45.428Z"
     },
     {
       "id": "BGT1117",
@@ -1493,7 +1493,7 @@
       "operatorId": "u3",
       "operatorName": "王五",
       "remark": "扣减预算：报销单 BX1097，金额 3500.00 元",
-      "operatedAt": "2026-06-17T01:51:57.060Z"
+      "operatedAt": "2026-06-17T03:41:45.435Z"
     },
     {
       "id": "BGT1121",
@@ -1505,7 +1505,7 @@
       "operatorId": "u3",
       "operatorName": "王五",
       "remark": "扣减预算：报销单 BX1101，金额 2000.00 元",
-      "operatedAt": "2026-06-17T01:51:57.070Z"
+      "operatedAt": "2026-06-17T03:41:45.443Z"
     }
   ],
   "importBatches": [
@@ -1523,7 +1523,7 @@
       "operatorName": "系统管理员",
       "month": "2026-06",
       "remark": "首次正式导入",
-      "importedAt": "2026-06-17T01:51:57.016Z",
+      "importedAt": "2026-06-17T03:41:45.407Z",
       "details": {
         "success": [
           {
@@ -1594,7 +1594,7 @@
       "operatorName": "王五",
       "month": "2026-06",
       "remark": "补充科目",
-      "importedAt": "2026-06-17T01:51:57.018Z",
+      "importedAt": "2026-06-17T03:41:45.408Z",
       "details": {
         "success": [],
         "skipped": [],
