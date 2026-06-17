@@ -1,11 +1,59 @@
 {
   "reimbursements": [
     {
-      "id": "BX1057",
-      "title": "review-main-chain",
-      "amount": 1200,
+      "id": "BX1093",
+      "title": "差旅报销-北京出差",
+      "amount": 8000,
       "type": "差旅费",
-      "description": "manual reviewer chain",
+      "description": "",
+      "applicantId": "u1",
+      "status": "archived",
+      "attachments": [],
+      "missingAttachments": [],
+      "rejectReason": null,
+      "deadline": null,
+      "supplementCycle": 0,
+      "lastSupplementAt": null,
+      "supplementRounds": [],
+      "createdAt": "2026-06-17T01:51:57.022Z",
+      "updatedAt": "2026-06-17T01:51:57.074Z",
+      "version": 4,
+      "archivedAt": "2026-06-17T01:51:57.074Z",
+      "archivedBy": "u4",
+      "withdrawReason": null,
+      "withdrawnAt": null,
+      "withdrawnBy": null
+    },
+    {
+      "id": "BX1097",
+      "title": "办公用品采购",
+      "amount": 3500,
+      "type": "办公费",
+      "description": "",
+      "applicantId": "u1",
+      "status": "archived",
+      "attachments": [],
+      "missingAttachments": [],
+      "rejectReason": null,
+      "deadline": null,
+      "supplementCycle": 0,
+      "lastSupplementAt": null,
+      "supplementRounds": [],
+      "createdAt": "2026-06-17T01:51:57.026Z",
+      "updatedAt": "2026-06-17T01:51:57.081Z",
+      "version": 6,
+      "archivedAt": "2026-06-17T01:51:57.081Z",
+      "archivedBy": "u4",
+      "withdrawReason": null,
+      "withdrawnAt": null,
+      "withdrawnBy": null
+    },
+    {
+      "id": "BX1101",
+      "title": "客户招待餐费",
+      "amount": 2000,
+      "type": "招待费",
+      "description": "",
       "applicantId": "u1",
       "status": "approved",
       "attachments": [],
@@ -15,9 +63,9 @@
       "supplementCycle": 0,
       "lastSupplementAt": null,
       "supplementRounds": [],
-      "createdAt": "2026-06-17T01:18:36.684Z",
-      "updatedAt": "2026-06-17T01:18:36.719Z",
-      "version": 5,
+      "createdAt": "2026-06-17T01:51:57.032Z",
+      "updatedAt": "2026-06-17T01:51:57.070Z",
+      "version": 3,
       "archivedAt": null,
       "archivedBy": null,
       "withdrawReason": null,
@@ -28,74 +76,174 @@
   "reminders": [],
   "operationLogs": [
     {
-      "id": "LOG1058",
-      "reimbursementId": "BX1057",
+      "id": "LOG1094",
+      "reimbursementId": "BX1093",
       "operatorId": "u1",
       "operatorName": "张三",
       "operatorRole": "applicant",
       "action": "create",
       "remark": "创建报销单",
-      "operatedAt": "2026-06-17T01:18:36.685Z"
+      "operatedAt": "2026-06-17T01:51:57.022Z"
     },
     {
-      "id": "LOG1061",
-      "reimbursementId": "BX1057",
+      "id": "LOG1098",
+      "reimbursementId": "BX1097",
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "operatorRole": "applicant",
+      "action": "create",
+      "remark": "创建报销单",
+      "operatedAt": "2026-06-17T01:51:57.026Z"
+    },
+    {
+      "id": "LOG1102",
+      "reimbursementId": "BX1101",
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "operatorRole": "applicant",
+      "action": "create",
+      "remark": "创建报销单",
+      "operatedAt": "2026-06-17T01:51:57.032Z"
+    },
+    {
+      "id": "LOG1105",
+      "reimbursementId": "BX1097",
       "operatorId": "u1",
       "operatorName": "张三",
       "operatorRole": "applicant",
       "action": "withdraw",
-      "remark": "申请人撤销报销单，原因：manual-withdraw",
-      "operatedAt": "2026-06-17T01:18:36.701Z"
+      "remark": "申请人撤销报销单，原因：金额填错，撤销修改",
+      "operatedAt": "2026-06-17T01:51:57.037Z"
     },
     {
-      "id": "LOG1063",
-      "reimbursementId": "BX1057",
+      "id": "LOG1107",
+      "reimbursementId": "BX1097",
       "operatorId": "u1",
       "operatorName": "张三",
       "operatorRole": "applicant",
       "action": "budget_release",
-      "remark": "预算已释放：金额 1200.00 元，原因：申请人撤销",
-      "operatedAt": "2026-06-17T01:18:36.702Z"
+      "remark": "预算已释放：金额 3500.00 元，原因：申请人撤销",
+      "operatedAt": "2026-06-17T01:51:57.037Z"
     },
     {
-      "id": "LOG1066",
-      "reimbursementId": "BX1057",
+      "id": "LOG1110",
+      "reimbursementId": "BX1097",
       "operatorId": "u1",
       "operatorName": "张三",
       "operatorRole": "applicant",
       "action": "resubmit",
       "remark": "重新提交报销单",
-      "operatedAt": "2026-06-17T01:18:36.708Z"
+      "operatedAt": "2026-06-17T01:51:57.041Z"
     },
     {
-      "id": "LOG1067",
-      "reimbursementId": "BX1057",
+      "id": "LOG1111",
+      "reimbursementId": "BX1093",
       "operatorId": "u2",
       "operatorName": "李四",
       "operatorRole": "auditor",
       "action": "approve_audit",
       "remark": "初审通过，进入财务复核",
-      "operatedAt": "2026-06-17T01:18:36.714Z"
+      "operatedAt": "2026-06-17T01:51:57.046Z"
     },
     {
-      "id": "LOG1068",
-      "reimbursementId": "BX1057",
+      "id": "LOG1112",
+      "reimbursementId": "BX1093",
       "operatorId": "u3",
       "operatorName": "王五",
       "operatorRole": "finance",
       "action": "approve_finance",
       "remark": "财务复核通过",
-      "operatedAt": "2026-06-17T01:18:36.719Z"
+      "operatedAt": "2026-06-17T01:51:57.051Z"
     },
     {
-      "id": "LOG1070",
-      "reimbursementId": "BX1057",
+      "id": "LOG1114",
+      "reimbursementId": "BX1093",
       "operatorId": "u3",
       "operatorName": "王五",
       "operatorRole": "finance",
       "action": "budget_deduct",
-      "remark": "预算已扣减：金额 1200.00 元",
-      "operatedAt": "2026-06-17T01:18:36.719Z"
+      "remark": "预算已扣减：金额 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.051Z"
+    },
+    {
+      "id": "LOG1115",
+      "reimbursementId": "BX1097",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "approve_audit",
+      "remark": "初审通过，进入财务复核",
+      "operatedAt": "2026-06-17T01:51:57.056Z"
+    },
+    {
+      "id": "LOG1116",
+      "reimbursementId": "BX1097",
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "operatorRole": "finance",
+      "action": "approve_finance",
+      "remark": "财务复核通过",
+      "operatedAt": "2026-06-17T01:51:57.060Z"
+    },
+    {
+      "id": "LOG1118",
+      "reimbursementId": "BX1097",
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "operatorRole": "finance",
+      "action": "budget_deduct",
+      "remark": "预算已扣减：金额 3500.00 元",
+      "operatedAt": "2026-06-17T01:51:57.060Z"
+    },
+    {
+      "id": "LOG1119",
+      "reimbursementId": "BX1101",
+      "operatorId": "u2",
+      "operatorName": "李四",
+      "operatorRole": "auditor",
+      "action": "approve_audit",
+      "remark": "初审通过，进入财务复核",
+      "operatedAt": "2026-06-17T01:51:57.065Z"
+    },
+    {
+      "id": "LOG1120",
+      "reimbursementId": "BX1101",
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "operatorRole": "finance",
+      "action": "approve_finance",
+      "remark": "财务复核通过",
+      "operatedAt": "2026-06-17T01:51:57.070Z"
+    },
+    {
+      "id": "LOG1122",
+      "reimbursementId": "BX1101",
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "operatorRole": "finance",
+      "action": "budget_deduct",
+      "remark": "预算已扣减：金额 2000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.070Z"
+    },
+    {
+      "id": "LOG1123",
+      "reimbursementId": "BX1093",
+      "operatorId": "u4",
+      "operatorName": "赵六",
+      "operatorRole": "archiver",
+      "action": "archive",
+      "remark": "已归档",
+      "operatedAt": "2026-06-17T01:51:57.074Z"
+    },
+    {
+      "id": "LOG1124",
+      "reimbursementId": "BX1097",
+      "operatorId": "u4",
+      "operatorName": "赵六",
+      "operatorRole": "archiver",
+      "action": "archive",
+      "remark": "已归档",
+      "operatedAt": "2026-06-17T01:51:57.081Z"
     }
   ],
   "budgets": [
@@ -105,12 +253,12 @@
       "departmentId": "dept1",
       "departmentName": "研发部",
       "category": "差旅费",
-      "totalAmount": 8000,
-      "usedAmount": 1200,
+      "totalAmount": 25000,
+      "usedAmount": 8000,
       "frozenAmount": 0,
       "version": 5,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.719Z"
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.051Z"
     },
     {
       "id": "BG1003",
@@ -118,12 +266,12 @@
       "departmentId": "dept1",
       "departmentName": "研发部",
       "category": "办公费",
-      "totalAmount": 8000,
-      "usedAmount": 0,
+      "totalAmount": 10000,
+      "usedAmount": 3500,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 7,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.060Z"
     },
     {
       "id": "BG1005",
@@ -131,12 +279,12 @@
       "departmentId": "dept1",
       "departmentName": "研发部",
       "category": "招待费",
-      "totalAmount": 8000,
-      "usedAmount": 0,
+      "totalAmount": 3000,
+      "usedAmount": 2000,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 4,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.070Z"
     },
     {
       "id": "BG1007",
@@ -144,12 +292,12 @@
       "departmentId": "dept1",
       "departmentName": "研发部",
       "category": "通讯费",
-      "totalAmount": 8000,
+      "totalAmount": 20000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1009",
@@ -157,12 +305,12 @@
       "departmentId": "dept1",
       "departmentName": "研发部",
       "category": "交通费",
-      "totalAmount": 8000,
+      "totalAmount": 20000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1011",
@@ -170,12 +318,12 @@
       "departmentId": "dept1",
       "departmentName": "研发部",
       "category": "培训费",
-      "totalAmount": 8000,
+      "totalAmount": 20000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1013",
@@ -183,12 +331,12 @@
       "departmentId": "dept1",
       "departmentName": "研发部",
       "category": "其他",
-      "totalAmount": 8000,
+      "totalAmount": 20000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1015",
@@ -196,12 +344,12 @@
       "departmentId": "dept2",
       "departmentName": "市场部",
       "category": "差旅费",
-      "totalAmount": 8000,
+      "totalAmount": 18000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 3,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.016Z"
     },
     {
       "id": "BG1017",
@@ -209,12 +357,12 @@
       "departmentId": "dept2",
       "departmentName": "市场部",
       "category": "办公费",
-      "totalAmount": 8000,
+      "totalAmount": 15000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.678Z",
-      "updatedAt": "2026-06-17T01:18:36.678Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1019",
@@ -222,12 +370,12 @@
       "departmentId": "dept2",
       "departmentName": "市场部",
       "category": "招待费",
-      "totalAmount": 8000,
+      "totalAmount": 5000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 3,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.016Z"
     },
     {
       "id": "BG1021",
@@ -235,12 +383,12 @@
       "departmentId": "dept2",
       "departmentName": "市场部",
       "category": "通讯费",
-      "totalAmount": 8000,
+      "totalAmount": 15000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1023",
@@ -248,12 +396,12 @@
       "departmentId": "dept2",
       "departmentName": "市场部",
       "category": "交通费",
-      "totalAmount": 8000,
+      "totalAmount": 15000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1025",
@@ -261,12 +409,12 @@
       "departmentId": "dept2",
       "departmentName": "市场部",
       "category": "培训费",
-      "totalAmount": 8000,
+      "totalAmount": 15000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1027",
@@ -274,12 +422,12 @@
       "departmentId": "dept2",
       "departmentName": "市场部",
       "category": "其他",
-      "totalAmount": 8000,
+      "totalAmount": 15000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1029",
@@ -287,12 +435,12 @@
       "departmentId": "dept3",
       "departmentName": "财务部",
       "category": "差旅费",
-      "totalAmount": 8000,
+      "totalAmount": 5000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1031",
@@ -300,12 +448,12 @@
       "departmentId": "dept3",
       "departmentName": "财务部",
       "category": "办公费",
-      "totalAmount": 8000,
+      "totalAmount": 10000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1033",
@@ -313,12 +461,12 @@
       "departmentId": "dept3",
       "departmentName": "财务部",
       "category": "招待费",
-      "totalAmount": 8000,
+      "totalAmount": 3000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1035",
@@ -326,12 +474,12 @@
       "departmentId": "dept3",
       "departmentName": "财务部",
       "category": "通讯费",
-      "totalAmount": 8000,
+      "totalAmount": 10000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1037",
@@ -339,12 +487,12 @@
       "departmentId": "dept3",
       "departmentName": "财务部",
       "category": "交通费",
-      "totalAmount": 8000,
+      "totalAmount": 10000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1039",
@@ -355,9 +503,9 @@
       "totalAmount": 8000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 3,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.016Z"
     },
     {
       "id": "BG1041",
@@ -365,12 +513,12 @@
       "departmentId": "dept3",
       "departmentName": "财务部",
       "category": "其他",
-      "totalAmount": 8000,
+      "totalAmount": 10000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1043",
@@ -378,12 +526,12 @@
       "departmentId": "dept4",
       "departmentName": "行政部",
       "category": "差旅费",
-      "totalAmount": 8000,
+      "totalAmount": 5000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1045",
@@ -394,9 +542,9 @@
       "totalAmount": 8000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1047",
@@ -404,12 +552,12 @@
       "departmentId": "dept4",
       "departmentName": "行政部",
       "category": "招待费",
-      "totalAmount": 8000,
+      "totalAmount": 3000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1049",
@@ -420,9 +568,9 @@
       "totalAmount": 8000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1051",
@@ -430,12 +578,12 @@
       "departmentId": "dept4",
       "departmentName": "行政部",
       "category": "交通费",
-      "totalAmount": 8000,
+      "totalAmount": 3000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 3,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.016Z"
     },
     {
       "id": "BG1053",
@@ -446,9 +594,9 @@
       "totalAmount": 8000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
       "id": "BG1055",
@@ -459,75 +607,62 @@
       "totalAmount": 8000,
       "usedAmount": 0,
       "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.679Z",
-      "updatedAt": "2026-06-17T01:18:36.679Z"
-    },
-    {
-      "id": "BG1071",
-      "month": "2026-07",
-      "departmentId": "dept1",
-      "departmentName": "研发部",
-      "category": "???",
-      "totalAmount": 10000,
-      "usedAmount": 0,
-      "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.786Z",
-      "updatedAt": "2026-06-17T01:18:36.786Z"
-    },
-    {
-      "id": "BG1073",
-      "month": "2026-07",
-      "departmentId": "dept2",
-      "departmentName": "市场部",
-      "category": "???",
-      "totalAmount": 5000,
-      "usedAmount": 0,
-      "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.791Z",
-      "updatedAt": "2026-06-17T01:18:36.791Z"
-    },
-    {
-      "id": "BG1075",
-      "month": "2026-07",
-      "departmentId": "dept4",
-      "departmentName": "行政部",
-      "category": "???",
-      "totalAmount": 3000,
-      "usedAmount": 0,
-      "frozenAmount": 0,
-      "version": 1,
-      "createdAt": "2026-06-17T01:18:36.791Z",
-      "updatedAt": "2026-06-17T01:18:36.791Z"
+      "version": 2,
+      "createdAt": "2026-06-17T01:51:57.010Z",
+      "updatedAt": "2026-06-17T01:51:57.013Z"
     }
   ],
   "budgetFreezes": [
     {
-      "id": "BF1059",
-      "reimbursementId": "BX1057",
+      "id": "BF1095",
+      "reimbursementId": "BX1093",
       "budgetId": "BG1001",
       "month": "2026-06",
       "departmentId": "dept1",
       "category": "差旅费",
-      "amount": 1200,
-      "status": "released",
-      "frozenAt": "2026-06-17T01:18:36.685Z",
-      "updatedAt": "2026-06-17T01:18:36.701Z",
+      "amount": 8000,
+      "status": "deducted",
+      "frozenAt": "2026-06-17T01:51:57.022Z",
+      "updatedAt": "2026-06-17T01:51:57.051Z",
       "version": 2
     },
     {
-      "id": "BF1064",
-      "reimbursementId": "BX1057",
-      "budgetId": "BG1001",
+      "id": "BF1099",
+      "reimbursementId": "BX1097",
+      "budgetId": "BG1003",
       "month": "2026-06",
       "departmentId": "dept1",
-      "category": "差旅费",
-      "amount": 1200,
+      "category": "办公费",
+      "amount": 3500,
+      "status": "released",
+      "frozenAt": "2026-06-17T01:51:57.026Z",
+      "updatedAt": "2026-06-17T01:51:57.037Z",
+      "version": 2
+    },
+    {
+      "id": "BF1103",
+      "reimbursementId": "BX1101",
+      "budgetId": "BG1005",
+      "month": "2026-06",
+      "departmentId": "dept1",
+      "category": "招待费",
+      "amount": 2000,
       "status": "deducted",
-      "frozenAt": "2026-06-17T01:18:36.708Z",
-      "updatedAt": "2026-06-17T01:18:36.719Z",
+      "frozenAt": "2026-06-17T01:51:57.032Z",
+      "updatedAt": "2026-06-17T01:51:57.070Z",
+      "version": 2
+    },
+    {
+      "id": "BF1108",
+      "reimbursementId": "BX1097",
+      "budgetId": "BG1003",
+      "month": "2026-06",
+      "departmentId": "dept1",
+      "category": "办公费",
+      "amount": 3500,
+      "status": "deducted",
+      "frozenAt": "2026-06-17T01:51:57.041Z",
+      "updatedAt": "2026-06-17T01:51:57.060Z",
       "version": 2
     }
   ],
@@ -537,486 +672,966 @@
       "budgetId": "BG1001",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 研发部 差旅费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 研发部 差旅费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1004",
       "budgetId": "BG1003",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 研发部 办公费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 研发部 办公费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1006",
       "budgetId": "BG1005",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 研发部 招待费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 研发部 招待费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1008",
       "budgetId": "BG1007",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 研发部 通讯费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 研发部 通讯费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1010",
       "budgetId": "BG1009",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 研发部 交通费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 研发部 交通费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1012",
       "budgetId": "BG1011",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 研发部 培训费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 研发部 培训费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1014",
       "budgetId": "BG1013",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 研发部 其他，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 研发部 其他，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1016",
       "budgetId": "BG1015",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 市场部 差旅费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.678Z"
+      "remark": "自动补齐预算：2026-06 市场部 差旅费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1018",
       "budgetId": "BG1017",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 市场部 办公费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 市场部 办公费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1020",
       "budgetId": "BG1019",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 市场部 招待费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 市场部 招待费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1022",
       "budgetId": "BG1021",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 市场部 通讯费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 市场部 通讯费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1024",
       "budgetId": "BG1023",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 市场部 交通费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 市场部 交通费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1026",
       "budgetId": "BG1025",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 市场部 培训费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 市场部 培训费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1028",
       "budgetId": "BG1027",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 市场部 其他，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 市场部 其他，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1030",
       "budgetId": "BG1029",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 财务部 差旅费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 财务部 差旅费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1032",
       "budgetId": "BG1031",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 财务部 办公费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 财务部 办公费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1034",
       "budgetId": "BG1033",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 财务部 招待费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 财务部 招待费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1036",
       "budgetId": "BG1035",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 财务部 通讯费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 财务部 通讯费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1038",
       "budgetId": "BG1037",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 财务部 交通费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 财务部 交通费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1040",
       "budgetId": "BG1039",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 财务部 培训费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 财务部 培训费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1042",
       "budgetId": "BG1041",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 财务部 其他，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 财务部 其他，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1044",
       "budgetId": "BG1043",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 行政部 差旅费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 行政部 差旅费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1046",
       "budgetId": "BG1045",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 行政部 办公费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 行政部 办公费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1048",
       "budgetId": "BG1047",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 行政部 招待费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 行政部 招待费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1050",
       "budgetId": "BG1049",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 行政部 通讯费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 行政部 通讯费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1052",
       "budgetId": "BG1051",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 行政部 交通费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 行政部 交通费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1054",
       "budgetId": "BG1053",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 行政部 培训费，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 行政部 培训费，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
       "id": "BGT1056",
       "budgetId": "BG1055",
       "reimbursementId": "",
       "type": "allocate",
-      "amount": 8000,
-      "balanceAfter": 8000,
+      "amount": 0,
+      "balanceAfter": 0,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "自动补齐预算：2026-06 行政部 其他，额度 8000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.679Z"
+      "remark": "自动补齐预算：2026-06 行政部 其他，额度 0.00 元",
+      "operatedAt": "2026-06-17T01:51:57.010Z"
     },
     {
-      "id": "BGT1060",
+      "id": "BGT1057",
       "budgetId": "BG1001",
-      "reimbursementId": "BX1057",
-      "type": "freeze",
-      "amount": 1200,
-      "balanceAfter": 6800,
-      "operatorId": "u1",
-      "operatorName": "张三",
-      "remark": "冻结预算：报销单 BX1057，金额 1200.00 元",
-      "operatedAt": "2026-06-17T01:18:36.685Z"
-    },
-    {
-      "id": "BGT1062",
-      "budgetId": "BG1001",
-      "reimbursementId": "BX1057",
-      "type": "release",
-      "amount": -1200,
-      "balanceAfter": 8000,
-      "operatorId": "u1",
-      "operatorName": "张三",
-      "remark": "释放预算：报销单 BX1057，申请人撤销，原因：manual-withdraw，金额 1200.00 元",
-      "operatedAt": "2026-06-17T01:18:36.701Z"
-    },
-    {
-      "id": "BGT1065",
-      "budgetId": "BG1001",
-      "reimbursementId": "BX1057",
-      "type": "freeze",
-      "amount": 1200,
-      "balanceAfter": 6800,
-      "operatorId": "u1",
-      "operatorName": "张三",
-      "remark": "冻结预算：报销单 BX1057，金额 1200.00 元",
-      "operatedAt": "2026-06-17T01:18:36.708Z"
-    },
-    {
-      "id": "BGT1069",
-      "budgetId": "BG1001",
-      "reimbursementId": "BX1057",
-      "type": "deduct",
-      "amount": 1200,
-      "balanceAfter": 6800,
-      "operatorId": "u3",
-      "operatorName": "王五",
-      "remark": "扣减预算：报销单 BX1057，金额 1200.00 元",
-      "operatedAt": "2026-06-17T01:18:36.719Z"
-    },
-    {
-      "id": "BGT1072",
-      "budgetId": "BG1071",
       "reimbursementId": "",
-      "type": "allocate",
-      "amount": 10000,
-      "balanceAfter": 10000,
-      "operatorId": "u5",
-      "operatorName": "系统管理员",
-      "remark": "创建预算：2026-07 研发部 ???，额度 10000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.786Z"
-    },
-    {
-      "id": "BGT1074",
-      "budgetId": "BG1073",
-      "reimbursementId": "",
-      "type": "import",
+      "type": "adjust",
       "amount": 5000,
       "balanceAfter": 5000,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "CSV导入：2026-07 市场部 ???，额度 5000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.791Z"
+      "remark": "自动补齐零额度预算：2026-06 研发部 差旅费，0.00 → 5000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
     },
     {
-      "id": "BGT1076",
-      "budgetId": "BG1075",
+      "id": "BGT1058",
+      "budgetId": "BG1003",
       "reimbursementId": "",
-      "type": "import",
+      "type": "adjust",
+      "amount": 20000,
+      "balanceAfter": 20000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 研发部 办公费，0.00 → 20000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1059",
+      "budgetId": "BG1005",
+      "reimbursementId": "",
+      "type": "adjust",
       "amount": 3000,
       "balanceAfter": 3000,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "remark": "CSV导入：2026-07 行政部 ???，额度 3000.00 元",
-      "operatedAt": "2026-06-17T01:18:36.791Z"
+      "remark": "自动补齐零额度预算：2026-06 研发部 招待费，0.00 → 3000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1060",
+      "budgetId": "BG1007",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 20000,
+      "balanceAfter": 20000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 研发部 通讯费，0.00 → 20000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1061",
+      "budgetId": "BG1009",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 20000,
+      "balanceAfter": 20000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 研发部 交通费，0.00 → 20000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1062",
+      "budgetId": "BG1011",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 20000,
+      "balanceAfter": 20000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 研发部 培训费，0.00 → 20000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1063",
+      "budgetId": "BG1013",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 20000,
+      "balanceAfter": 20000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 研发部 其他，0.00 → 20000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1064",
+      "budgetId": "BG1015",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 5000,
+      "balanceAfter": 5000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 市场部 差旅费，0.00 → 5000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1065",
+      "budgetId": "BG1017",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 15000,
+      "balanceAfter": 15000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 市场部 办公费，0.00 → 15000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1066",
+      "budgetId": "BG1019",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 3000,
+      "balanceAfter": 3000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 市场部 招待费，0.00 → 3000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1067",
+      "budgetId": "BG1021",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 15000,
+      "balanceAfter": 15000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 市场部 通讯费，0.00 → 15000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1068",
+      "budgetId": "BG1023",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 15000,
+      "balanceAfter": 15000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 市场部 交通费，0.00 → 15000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1069",
+      "budgetId": "BG1025",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 15000,
+      "balanceAfter": 15000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 市场部 培训费，0.00 → 15000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1070",
+      "budgetId": "BG1027",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 15000,
+      "balanceAfter": 15000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 市场部 其他，0.00 → 15000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1071",
+      "budgetId": "BG1029",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 5000,
+      "balanceAfter": 5000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 财务部 差旅费，0.00 → 5000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1072",
+      "budgetId": "BG1031",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 10000,
+      "balanceAfter": 10000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 财务部 办公费，0.00 → 10000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1073",
+      "budgetId": "BG1033",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 3000,
+      "balanceAfter": 3000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 财务部 招待费，0.00 → 3000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1074",
+      "budgetId": "BG1035",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 10000,
+      "balanceAfter": 10000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 财务部 通讯费，0.00 → 10000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1075",
+      "budgetId": "BG1037",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 10000,
+      "balanceAfter": 10000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 财务部 交通费，0.00 → 10000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1076",
+      "budgetId": "BG1039",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 10000,
+      "balanceAfter": 10000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 财务部 培训费，0.00 → 10000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1077",
+      "budgetId": "BG1041",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 10000,
+      "balanceAfter": 10000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 财务部 其他，0.00 → 10000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1078",
+      "budgetId": "BG1043",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 5000,
+      "balanceAfter": 5000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 行政部 差旅费，0.00 → 5000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1079",
+      "budgetId": "BG1045",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 8000,
+      "balanceAfter": 8000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 行政部 办公费，0.00 → 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1080",
+      "budgetId": "BG1047",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 3000,
+      "balanceAfter": 3000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 行政部 招待费，0.00 → 3000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1081",
+      "budgetId": "BG1049",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 8000,
+      "balanceAfter": 8000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 行政部 通讯费，0.00 → 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1082",
+      "budgetId": "BG1051",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 8000,
+      "balanceAfter": 8000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 行政部 交通费，0.00 → 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1083",
+      "budgetId": "BG1053",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 8000,
+      "balanceAfter": 8000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 行政部 培训费，0.00 → 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1084",
+      "budgetId": "BG1055",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 8000,
+      "balanceAfter": 8000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "自动补齐零额度预算：2026-06 行政部 其他，0.00 → 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.013Z"
+    },
+    {
+      "id": "BGT1085",
+      "budgetId": "BG1001",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 20000,
+      "balanceAfter": 25000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "导入覆盖：2026-06 研发部 差旅费，5000.00 → 25000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.016Z"
+    },
+    {
+      "id": "BGT1086",
+      "budgetId": "BG1003",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": -10000,
+      "balanceAfter": 10000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "导入覆盖：2026-06 研发部 办公费，20000.00 → 10000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.016Z"
+    },
+    {
+      "id": "BGT1087",
+      "budgetId": "BG1015",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 13000,
+      "balanceAfter": 18000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "导入覆盖：2026-06 市场部 差旅费，5000.00 → 18000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.016Z"
+    },
+    {
+      "id": "BGT1088",
+      "budgetId": "BG1019",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": 2000,
+      "balanceAfter": 5000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "导入覆盖：2026-06 市场部 招待费，3000.00 → 5000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.016Z"
+    },
+    {
+      "id": "BGT1089",
+      "budgetId": "BG1039",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": -2000,
+      "balanceAfter": 8000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "导入覆盖：2026-06 财务部 培训费，10000.00 → 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.016Z"
+    },
+    {
+      "id": "BGT1090",
+      "budgetId": "BG1051",
+      "reimbursementId": "",
+      "type": "adjust",
+      "amount": -5000,
+      "balanceAfter": 3000,
+      "operatorId": "u5",
+      "operatorName": "系统管理员",
+      "remark": "导入覆盖：2026-06 行政部 交通费，8000.00 → 3000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.016Z"
+    },
+    {
+      "id": "BGT1096",
+      "budgetId": "BG1001",
+      "reimbursementId": "BX1093",
+      "type": "freeze",
+      "amount": 8000,
+      "balanceAfter": 17000,
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "remark": "冻结预算：报销单 BX1093，金额 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.022Z"
+    },
+    {
+      "id": "BGT1100",
+      "budgetId": "BG1003",
+      "reimbursementId": "BX1097",
+      "type": "freeze",
+      "amount": 3500,
+      "balanceAfter": 6500,
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "remark": "冻结预算：报销单 BX1097，金额 3500.00 元",
+      "operatedAt": "2026-06-17T01:51:57.026Z"
+    },
+    {
+      "id": "BGT1104",
+      "budgetId": "BG1005",
+      "reimbursementId": "BX1101",
+      "type": "freeze",
+      "amount": 2000,
+      "balanceAfter": 1000,
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "remark": "冻结预算：报销单 BX1101，金额 2000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.032Z"
+    },
+    {
+      "id": "BGT1106",
+      "budgetId": "BG1003",
+      "reimbursementId": "BX1097",
+      "type": "release",
+      "amount": -3500,
+      "balanceAfter": 10000,
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "remark": "释放预算：报销单 BX1097，申请人撤销，原因：金额填错，撤销修改，金额 3500.00 元",
+      "operatedAt": "2026-06-17T01:51:57.037Z"
+    },
+    {
+      "id": "BGT1109",
+      "budgetId": "BG1003",
+      "reimbursementId": "BX1097",
+      "type": "freeze",
+      "amount": 3500,
+      "balanceAfter": 6500,
+      "operatorId": "u1",
+      "operatorName": "张三",
+      "remark": "冻结预算：报销单 BX1097，金额 3500.00 元",
+      "operatedAt": "2026-06-17T01:51:57.041Z"
+    },
+    {
+      "id": "BGT1113",
+      "budgetId": "BG1001",
+      "reimbursementId": "BX1093",
+      "type": "deduct",
+      "amount": 8000,
+      "balanceAfter": 17000,
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "remark": "扣减预算：报销单 BX1093，金额 8000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.051Z"
+    },
+    {
+      "id": "BGT1117",
+      "budgetId": "BG1003",
+      "reimbursementId": "BX1097",
+      "type": "deduct",
+      "amount": 3500,
+      "balanceAfter": 6500,
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "remark": "扣减预算：报销单 BX1097，金额 3500.00 元",
+      "operatedAt": "2026-06-17T01:51:57.060Z"
+    },
+    {
+      "id": "BGT1121",
+      "budgetId": "BG1005",
+      "reimbursementId": "BX1101",
+      "type": "deduct",
+      "amount": 2000,
+      "balanceAfter": 1000,
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "remark": "扣减预算：报销单 BX1101，金额 2000.00 元",
+      "operatedAt": "2026-06-17T01:51:57.070Z"
     }
   ],
   "importBatches": [
     {
-      "id": "BATCH1077",
+      "id": "BATCH1091",
       "batchNo": "BATCH20260617001",
-      "fileName": "import.csv",
+      "fileName": "FY25_budget_v1.csv",
       "totalRows": 6,
-      "successCount": 2,
-      "skippedCount": 1,
-      "rejectedCount": 1,
-      "failedCount": 2,
-      "totalAmount": 8000,
+      "successCount": 6,
+      "skippedCount": 0,
+      "rejectedCount": 0,
+      "failedCount": 0,
+      "totalAmount": 69000,
       "operatorId": "u5",
       "operatorName": "系统管理员",
-      "month": "2026-07",
-      "remark": "",
-      "importedAt": "2026-06-17T01:18:36.791Z",
+      "month": "2026-06",
+      "remark": "首次正式导入",
+      "importedAt": "2026-06-17T01:51:57.016Z",
       "details": {
         "success": [
           {
+            "line": 2,
+            "key": "2026-06-dept1-差旅费",
+            "budgetId": "BG1001",
+            "totalAmount": 25000,
+            "overridden": true,
+            "oldTotal": 5000
+          },
+          {
             "line": 3,
-            "key": "2026-07-dept2-???",
-            "budgetId": "BG1073",
-            "totalAmount": 5000
+            "key": "2026-06-dept1-办公费",
+            "budgetId": "BG1003",
+            "totalAmount": 10000,
+            "overridden": true,
+            "oldTotal": 20000
+          },
+          {
+            "line": 4,
+            "key": "2026-06-dept2-差旅费",
+            "budgetId": "BG1015",
+            "totalAmount": 18000,
+            "overridden": true,
+            "oldTotal": 5000
+          },
+          {
+            "line": 5,
+            "key": "2026-06-dept2-招待费",
+            "budgetId": "BG1019",
+            "totalAmount": 5000,
+            "overridden": true,
+            "oldTotal": 3000
+          },
+          {
+            "line": 6,
+            "key": "2026-06-dept3-培训费",
+            "budgetId": "BG1039",
+            "totalAmount": 8000,
+            "overridden": true,
+            "oldTotal": 10000
           },
           {
             "line": 7,
-            "key": "2026-07-dept4-???",
-            "budgetId": "BG1075",
-            "totalAmount": 3000
+            "key": "2026-06-dept4-交通费",
+            "budgetId": "BG1051",
+            "totalAmount": 3000,
+            "overridden": true,
+            "oldTotal": 8000
           }
         ],
-        "skipped": [
-          {
-            "line": 4,
-            "key": "2026-07-dept2-???",
-            "reason": "CSV内重复，已跳过"
-          }
-        ],
+        "skipped": [],
+        "rejected": [],
+        "failed": []
+      }
+    },
+    {
+      "id": "BATCH1092",
+      "batchNo": "BATCH20260617002",
+      "fileName": "FY25_budget_supplement.csv",
+      "totalRows": 5,
+      "successCount": 0,
+      "skippedCount": 0,
+      "rejectedCount": 4,
+      "failedCount": 1,
+      "totalAmount": 0,
+      "operatorId": "u3",
+      "operatorName": "王五",
+      "month": "2026-06",
+      "remark": "补充科目",
+      "importedAt": "2026-06-17T01:51:57.018Z",
+      "details": {
+        "success": [],
+        "skipped": [],
         "rejected": [
           {
             "line": 2,
-            "key": "2026-07-dept1-???",
-            "reason": "预算已存在（当前额度 10000.00 元），拒绝覆盖。如需覆盖请勾选\"允许覆盖已有预算\"",
-            "existingAmount": 10000
+            "key": "2026-06-dept1-差旅费",
+            "reason": "预算已存在（当前额度 25000.00 元），拒绝覆盖。如需覆盖请勾选\"允许覆盖已有预算\"",
+            "existingAmount": 25000
+          },
+          {
+            "line": 3,
+            "key": "2026-06-dept1-培训费",
+            "reason": "预算已存在（当前额度 20000.00 元），拒绝覆盖。如需覆盖请勾选\"允许覆盖已有预算\"",
+            "existingAmount": 20000
+          },
+          {
+            "line": 4,
+            "key": "2026-06-dept4-通讯费",
+            "reason": "预算已存在（当前额度 8000.00 元），拒绝覆盖。如需覆盖请勾选\"允许覆盖已有预算\"",
+            "existingAmount": 8000
+          },
+          {
+            "line": 6,
+            "key": "2026-06-dept2-差旅费",
+            "reason": "预算已存在（当前额度 18000.00 元），拒绝覆盖。如需覆盖请勾选\"允许覆盖已有预算\"",
+            "existingAmount": 18000
           }
         ],
         "failed": [
           {
             "line": 5,
             "row": {
-              "month": "bad",
-              "departmentId": "row",
-              "category": "",
-              "totalAmount": ""
-            },
-            "error": "月份、部门、费用科目不能为空"
-          },
-          {
-            "line": 6,
-            "row": {
-              "month": "2026-07",
+              "month": "2026-06",
               "departmentId": "dept3",
-              "category": "???",
-              "totalAmount": "abc"
+              "category": "交通费",
+              "totalAmount": "invalid"
             },
             "error": "预算额度必须为非负数字"
           }
@@ -1024,5 +1639,5 @@
       }
     }
   ],
-  "seq": 1077
+  "seq": 1124
 }

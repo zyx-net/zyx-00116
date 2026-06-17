@@ -1899,41 +1899,151 @@ async function resetData() {
   setTimeout(() => location.reload(), 500);
 }
 
+// ============================================================
+// 预算验收中心 · 单一数据源（Single Source of Truth）架构
+// ============================================================
+const ACC_DETAIL_TYPES = ['success', 'skipped', 'rejected', 'failed'];
+const ACC_TAB_META = {
+  success:  { label: '✅ 成功',       cls: 'success',  amountCls: 'positive' },
+  skipped:  { label: '⏭️ 跳过',       cls: 'skipped',  amountCls: 'neutral'  },
+  rejected: { label: '🚫 拒绝覆盖',   cls: 'rejected', amountCls: 'neutral'  },
+  failed:   { label: '❌ 失败',       cls: 'failed',   amountCls: 'negative' }
+};
+
 let accState = {
   configResult: null,
   batches: [],
-  selectedBatch: null,
-  currentDetailTab: 'success',
-  scenarioCount: 12
+  batchesById: {},
+  selected: {
+    batchId: null,
+    batchDetail: null,
+    detailTab: 'success'
+  },
+  summary: {
+    scenarioCount: 12
+  },
+  _filterMonth: ''
 };
 
+// ---------- 视图组装器：统一把后端数据转成前端消费格式 ----------
+function accAssembleView() {
+  const batches = accState.batches;
+  const byId = {};
+  batches.forEach(b => { byId[b.id] = b; });
+  accState.batchesById = byId;
+
+  let reconcileSum = 0;
+  const month = accState._filterMonth;
+  batches.forEach(b => {
+    if (month && b.month !== month) return;
+    reconcileSum += (b.successCount || 0) + (b.skippedCount || 0) + (b.rejectedCount || 0) + (b.failedCount || 0);
+  });
+  accState.summary = {
+    ...accState.summary,
+    batchCount: batches.length,
+    reconcileRowCount: reconcileSum
+  };
+  return accState.summary;
+}
+
+function accGetDetailCount(batch, type) {
+  if (!batch || !batch.details) return 0;
+  const arr = batch.details[type];
+  return Array.isArray(arr) ? arr.length : 0;
+}
+
+// ---------- 顶层加载入口：统一异步加载链 ----------
 async function accLoadAll() {
-  await Promise.all([
-    accCheckConfig(true),
-    accLoadBatches()
-  ]);
-  accUpdateSummaryCards();
+  const now = new Date();
+  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  try {
+    const monthInput = document.getElementById('accConfigMonth');
+    if (monthInput && monthInput instanceof HTMLInputElement) {
+      if (!monthInput.value) monthInput.value = defaultMonth;
+      accState._filterMonth = monthInput.value || defaultMonth;
+    } else {
+      accState._filterMonth = defaultMonth;
+    }
+  } catch (e) {
+    accState._filterMonth = defaultMonth;
+    console.warn('[验收中心] 月份筛选器初始化异常，使用默认月', e);
+  }
+
+  try {
+    const results = await Promise.allSettled([
+      accFetchConfig(true),
+      API.get('/api/budget-transactions' + (accState._filterMonth ? `?month=${accState._filterMonth}` : '')),
+      accLoadBatches(true)
+    ]);
+    const [configRes, txRes] = results;
+
+    if (configRes.status === 'fulfilled' && configRes.value) {
+      accState.configResult = configRes.value;
+    }
+    if (txRes.status === 'fulfilled' && txRes.value) {
+      accState.summary.txCount = (txRes.value.list || []).length;
+    }
+
+    accAssembleView();
+    accRenderAll();
+  } catch (e) {
+    console.error('[验收中心] 加载失败', e);
+    toast('验收中心数据加载异常: ' + e.message, 'error');
+  }
 }
 
-function accUpdateSummaryCards() {
-  document.getElementById('accConfigCoverage').textContent =
-    accState.configResult ? `${Number(accState.configResult.coverageRate * 100).toFixed(1)}%` : '--';
-  document.getElementById('accBatchCount').textContent = accState.batches.length;
-  document.getElementById('accTxCount').textContent =
-    accState.batches.reduce((sum, b) => sum + (b.successCount || 0) + (b.failedCount || 0) + (b.rejectedCount || 0) + (b.skippedCount || 0), 0);
-  document.getElementById('accScenarioCount').textContent = accState.scenarioCount;
+// ---------- 渲染入口：所有渲染从这里走 ----------
+function accRenderAll() {
+  accRenderSummaryCards();
+  accRenderConfigResult();
+  accRenderBatches();
+  if (accState.selected.batchId) {
+    accRenderSelectedDetails();
+  }
 }
 
-async function accCheckConfig(silent = false) {
-  const month = document.getElementById('accConfigMonth').value || '';
+// ---------- 汇总卡片：从 summary 读，禁止直接计算 ----------
+function accRenderSummaryCards() {
+  const s = accState.summary;
+  const c = accState.configResult;
+
+  const covEl = document.getElementById('accCoverageRate');
+  if (covEl) {
+    covEl.textContent = c ? c.coverageRate : '--';
+  }
+  const covSubEl = document.getElementById('accCoverageSub');
+  if (covSubEl && c) {
+    covSubEl.textContent = `${c.configuredCount}/${c.totalCombinations} 组合已配置`;
+  }
+  const batchEl = document.getElementById('accBatchCount');
+  if (batchEl) batchEl.textContent = s.batchCount !== undefined ? s.batchCount : '--';
+
+  const txEl = document.getElementById('accReconcileCount');
+  if (txEl) txEl.textContent = s.txCount !== undefined ? s.txCount : '--';
+
+  const scEl = document.getElementById('accScenarioCount');
+  if (scEl) scEl.textContent = s.scenarioCount;
+}
+
+// ---------- 配置检查 ----------
+async function accFetchConfig(silent = false) {
+  const month = accState._filterMonth;
   const params = new URLSearchParams();
   if (month) params.set('month', month);
   const query = params.toString();
+  const data = await API.get('/api/budgets/config/check' + (query ? '?' + query : ''));
+  return data;
+}
+
+async function accCheckConfig(silent = false) {
+  const monthInput = document.getElementById('accConfigMonth');
+  accState._filterMonth = monthInput ? monthInput.value : '';
   try {
-    const data = await API.get('/api/budgets/config/check' + (query ? '?' + query : ''));
+    const data = await accFetchConfig(false);
     accState.configResult = data;
+    accRenderSummaryCards();
     accRenderConfigResult();
-    if (!silent) toast(`配置检查完成，覆盖率 ${Number(data.coverageRate * 100).toFixed(1)}%`, 'success');
+    if (!silent) toast(`配置检查完成，覆盖率 ${data.coverageRate}`, 'success');
   } catch (e) {
     if (!silent) toast('配置检查失败: ' + e.message, 'error');
   }
@@ -1941,15 +2051,27 @@ async function accCheckConfig(silent = false) {
 
 function accRenderConfigResult() {
   const r = accState.configResult;
-  if (!r) return;
+  const sectionEl = document.getElementById('accConfigSection');
+  if (!sectionEl) return;
+
   const statusDiv = document.getElementById('accConfigStatus');
+  if (!r) {
+    sectionEl.style.display = 'block';
+    statusDiv.innerHTML = '<span style="color:#999;">点击"检查配置"按钮开始</span>';
+    document.getElementById('accConfigMissing').innerHTML = '';
+    document.getElementById('accConfigZero').innerHTML = '';
+    return;
+  }
+  sectionEl.style.display = 'block';
+
   const cls = r.isComplete ? 'complete' : 'incomplete';
   const icon = r.isComplete ? '✅' : '⚠️';
   const fixMethod = r.missingCount > 0
     ? ` · <a href="javascript:accAutoSetup()">一键补齐</a> · 或手动创建 · 或修改月份筛选`
     : (r.zeroAmountBudgets && r.zeroAmountBudgets.length > 0 ? ` · <a href="javascript:accAutoSetup(true)">补合理默认值</a>` : '');
+
   statusDiv.className = `config-status ${cls}`;
-  statusDiv.innerHTML = `${icon} <strong>${r.month}</strong> 预算配置：共 ${r.totalCombinations} 组组合，已配置 ${r.configuredCount} 组，缺失 ${r.missingCount} 组，覆盖率 ${Number(r.coverageRate * 100).toFixed(1)}%${fixMethod}`;
+  statusDiv.innerHTML = `${icon} <strong>${r.month}</strong> 预算配置：共 ${r.totalCombinations} 组组合，已配置 ${r.configuredCount} 组，缺失 ${r.missingCount} 组，覆盖率 ${r.coverageRate}${fixMethod}`;
 
   const missingDiv = document.getElementById('accConfigMissing');
   if (r.missing && r.missing.length > 0) {
@@ -1991,9 +2113,10 @@ function accRenderConfigResult() {
   }
 }
 
+// ---------- 自动补齐 ----------
 async function accAutoSetup(onlyZero = false) {
   if (!confirm(onlyZero ? '确定要为零额度项补齐合理默认值吗？' : '确定要自动补齐缺失的预算配置吗？')) return;
-  const month = document.getElementById('accConfigMonth').value || '';
+  const month = accState._filterMonth;
   try {
     const data = await API.post('/api/budgets/auto-setup', {
       month,
@@ -2002,131 +2125,214 @@ async function accAutoSetup(onlyZero = false) {
     });
     toast(`自动补齐完成：创建 ${data.createdCount} 条，更新 ${data.updatedCount} 条`, 'success');
     await accCheckConfig(true);
-    accLoadBatches();
+    await accLoadBatches(true);
   } catch (e) {
     toast('自动补齐失败: ' + e.message, 'error');
   }
 }
 
-async function accLoadBatches() {
+// ---------- 批次列表：带 includeDetails 一次拉全 ----------
+async function accLoadBatches(silent = false) {
   const params = new URLSearchParams();
+  if (accState._filterMonth) params.set('month', accState._filterMonth);
+  params.set('includeDetails', 'true');
+  const query = params.toString();
   try {
-    const data = await API.get('/api/budgets/import/batches' + (params.toString() ? '?' + params.toString() : ''));
+    const data = await API.get('/api/budgets/import/batches' + (query ? '?' + query : ''));
     accState.batches = (data.list || []).sort((a, b) => new Date(b.importedAt) - new Date(a.importedAt));
-    accRenderBatches();
-    if (accState.batches.length > 0 && !accState.selectedBatch) {
-      accSelectBatch(accState.batches[0].id);
+    accAssembleView();
+
+    if (accState.batches.length > 0 && !accState.selected.batchId) {
+      accState.selected.batchId = accState.batches[0].id;
+      accState.selected.batchDetail = accState.batches[0];
+    } else if (accState.selected.batchId) {
+      accState.selected.batchDetail = accState.batchesById[accState.selected.batchId] || null;
     }
-    accUpdateSummaryCards();
+
+    accRenderAll();
   } catch (e) {
-    console.error('加载批次失败', e);
+    console.error('[验收中心] 加载批次失败', e);
+    if (!silent) toast('加载批次失败: ' + e.message, 'error');
   }
 }
 
 function accRenderBatches() {
-  const container = document.getElementById('accBatchesList');
+  const container = document.getElementById('accBatchList');
+  if (!container) return;
+
   if (accState.batches.length === 0) {
-    container.innerHTML = `<div style="padding:20px;text-align:center;color:#999;">暂无导入批次，请先导入预算数据</div>`;
-    document.getElementById('accImportDetails').style.display = 'none';
+    container.innerHTML = `<div class="empty-state">暂无导入批次，请先导入预算数据</div>`;
+    document.getElementById('accDetailSection').style.display = 'none';
     return;
   }
-  document.getElementById('accImportDetails').style.display = 'block';
+  document.getElementById('accDetailSection').style.display = 'block';
+
   container.innerHTML = `
     <div class="import-batches-list">
-      ${accState.batches.map(b => `
-        <div class="batch-item ${accState.selectedBatch === b.id ? 'active' : ''}" 
-             style="${accState.selectedBatch === b.id ? 'border-color:#1890ff;background:#e6f7ff;' : ''}"
-             onclick="accSelectBatch('${b.id}')">
-          <div class="batch-header">
-            <span class="batch-no">📦 ${b.batchNo}</span>
-            <span class="batch-time">${formatDate(b.importedAt)}</span>
+      ${accState.batches.map(b => {
+        const isActive = accState.selected.batchId === b.id;
+        const s = accGetDetailCount(b, 'success');
+        const k = accGetDetailCount(b, 'skipped');
+        const r = accGetDetailCount(b, 'rejected');
+        const f = accGetDetailCount(b, 'failed');
+        return `
+          <div class="batch-item ${isActive ? 'active' : ''}"
+               style="${isActive ? 'border-color:#1890ff;background:#e6f7ff;' : ''}"
+               onclick="accSelectBatch('${b.id}')" data-batch-id="${b.id}">
+            <div class="batch-header">
+              <span class="batch-no">📦 ${b.batchNo}</span>
+              <span class="batch-time">${formatDate(b.importedAt)}</span>
+              ${b.fileName ? `<span class="batch-file">📄 ${b.fileName}</span>` : ''}
+            </div>
+            <div class="batch-stats">
+              <div class="batch-stat"><span class="label">成功</span><span class="success">${s}</span></div>
+              <div class="batch-stat"><span class="label">跳过</span><span class="skipped">${k}</span></div>
+              <div class="batch-stat"><span class="label">拒绝</span><span class="rejected">${r}</span></div>
+              <div class="batch-stat"><span class="label">失败</span><span class="failed">${f}</span></div>
+              <div class="batch-stat"><span class="label">总额</span><span class="amount">¥${Number(b.totalAmount || 0).toFixed(2)}</span></div>
+              <div class="batch-stat"><span class="label">操作人</span><span>${b.operatorName || '-'}</span></div>
+              <div class="batch-stat"><span class="label">月份</span><span>${b.month || '-'}</span></div>
+            </div>
+            ${b.remark ? `<div class="batch-remark">📝 ${b.remark}</div>` : ''}
           </div>
-          <div class="batch-stats">
-            <div class="batch-stat"><span class="label">成功</span><span class="success">${b.successCount || 0}</span></div>
-            <div class="batch-stat"><span class="label">跳过</span><span class="skipped">${b.skippedCount || 0}</span></div>
-            <div class="batch-stat"><span class="label">拒绝</span><span class="rejected">${b.rejectedCount || 0}</span></div>
-            <div class="batch-stat"><span class="label">失败</span><span class="failed">${b.failedCount || 0}</span></div>
-            <div class="batch-stat"><span class="label">总额</span><span class="amount">¥${Number(b.totalAmount || 0).toFixed(2)}</span></div>
-            <div class="batch-stat"><span class="label">操作人</span><span>${b.operatorName || '-'}</span></div>
-          </div>
-        </div>
-      `).join('')}
+        `;
+      }).join('')}
     </div>
   `;
 }
 
+// ---------- 选中批次：统一状态更新 ----------
 function accSelectBatch(batchId) {
-  accState.selectedBatch = batchId;
-  const batch = accState.batches.find(b => b.id === batchId);
-  if (batch) {
-    accRenderDetailTabs(batch);
-    accRenderDetails(batch);
+  const batch = accState.batchesById[batchId];
+  if (!batch) {
+    toast('批次不存在或已失效', 'error');
+    return;
+  }
+  accState.selected.batchId = batchId;
+  accState.selected.batchDetail = batch;
+
+  if (!batch.details) {
+    API.get('/api/budgets/import/batches/' + batchId)
+      .then(fullBatch => {
+        accState.selected.batchDetail = fullBatch;
+        if (accState.batchesById[batchId]) {
+          accState.batchesById[batchId] = fullBatch;
+        }
+        accRenderBatches();
+        accRenderSelectedDetails();
+      })
+      .catch(e => {
+        console.error('拉取批次详情失败', e);
+        toast('拉取批次详情失败: ' + e.message, 'error');
+      });
   }
   accRenderBatches();
-}
-
-function accRenderDetailTabs(batch) {
-  const s = batch.successCount || 0;
-  const k = batch.skippedCount || 0;
-  const r = batch.rejectedCount || 0;
-  const f = batch.failedCount || 0;
-  const tabsDiv = document.getElementById('accDetailTabs');
-  tabsDiv.innerHTML = `
-    <button class="tab-btn ${accState.currentDetailTab === 'success' ? 'active' : ''}" onclick="accSwitchDetailTab('success')">✅ 成功 <span>${s}</span></button>
-    <button class="tab-btn ${accState.currentDetailTab === 'skipped' ? 'active' : ''}" onclick="accSwitchDetailTab('skipped')">⏭️ 跳过 <span>${k}</span></button>
-    <button class="tab-btn ${accState.currentDetailTab === 'rejected' ? 'active' : ''}" onclick="accSwitchDetailTab('rejected')">🚫 拒绝覆盖 <span>${r}</span></button>
-    <button class="tab-btn ${accState.currentDetailTab === 'failed' ? 'active' : ''}" onclick="accSwitchDetailTab('failed')">❌ 失败 <span>${f}</span></button>
-  `;
+  accRenderSelectedDetails();
 }
 
 function accSwitchDetailTab(tab) {
-  accState.currentDetailTab = tab;
-  const batch = accState.batches.find(b => b.id === accState.selectedBatch);
-  if (batch) {
-    accRenderDetailTabs(batch);
-    accRenderDetails(batch);
-  }
+  if (!ACC_DETAIL_TYPES.includes(tab)) return;
+  accState.selected.detailTab = tab;
+  accRenderDetailTabs();
+  accRenderDetailsList();
 }
 
-function accRenderDetails(batch) {
-  const contentDiv = document.getElementById('accDetailsContent');
-  const details = batch.details || [];
-  const items = details.filter(d => d.type === accState.currentDetailTab);
-  if (items.length === 0) {
-    contentDiv.innerHTML = `<div style="padding:20px;text-align:center;color:#999;">该分类下无明细记录</div>`;
+// ---------- 明细Tab + 列表渲染 ----------
+function accRenderSelectedDetails() {
+  const batch = accState.selected.batchDetail;
+  if (!batch) return;
+  accRenderDetailTabs();
+  accRenderDetailsList();
+}
+
+function accRenderDetailTabs() {
+  const tabsDiv = document.getElementById('accDetailTabs');
+  if (!tabsDiv) return;
+  const batch = accState.selected.batchDetail;
+  if (!batch) { tabsDiv.innerHTML = ''; return; }
+
+  tabsDiv.innerHTML = ACC_DETAIL_TYPES.map(type => {
+    const count = accGetDetailCount(batch, type);
+    const meta = ACC_TAB_META[type];
+    const active = accState.selected.detailTab === type ? 'active' : '';
+    return `
+      <button class="tab-btn ${active}" data-detail-tab="${type}" onclick="accSwitchDetailTab('${type}')">
+        ${meta.label} <span id="cnt${type.charAt(0).toUpperCase() + type.slice(1)}">${count}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function accRenderDetailsList() {
+  const contentDiv = document.getElementById('accImportDetails');
+  if (!contentDiv) return;
+  const batch = accState.selected.batchDetail;
+  const type = accState.selected.detailTab;
+
+  if (!batch || !batch.details) {
+    contentDiv.innerHTML = `<div class="empty-state">该批次暂无明细数据</div>`;
     return;
   }
-  const clsMap = {
-    success: 'success-item',
-    skipped: 'skipped-item',
-    rejected: 'rejected-item',
-    failed: 'failed-item'
+
+  const items = batch.details[type] || [];
+  const meta = ACC_TAB_META[type];
+
+  if (items.length === 0) {
+    contentDiv.innerHTML = `<div class="empty-state">该分类下无明细记录</div>`;
+    return;
+  }
+
+  const renderExtra = {
+    success: d => {
+      const amt = Number(d.totalAmount || 0).toFixed(2);
+      const isOverride = d.overridden ? ' <span style="color:#1890ff;font-size:11px;">(覆盖)</span>' : '';
+      return `<span class="amount ${meta.amountCls}">+¥${amt}</span>${isOverride}
+              <span style="color:#8c8c8c;font-size:11px;">budgetId: ${d.budgetId || '-'}</span>`;
+    },
+    skipped: d => `<span style="color:#8c8c8c;">${d.reason || 'CSV内重复，已跳过'}</span>`,
+    rejected: d => `
+      <span style="color:#8c8c8c;">已有 ¥${Number(d.existingAmount || 0).toFixed(2)}</span>
+      <div style="font-size:11px;color:#a8071a;margin-top:2px;line-height:1.4;">${d.reason || ''}</div>
+    `,
+    failed: d => `
+      <span style="color:#ff4d4f;">${d.error || '未知错误'}</span>
+      ${d.row ? `<div style="font-size:11px;color:#8c8c8c;margin-top:2px;">原始: ${JSON.stringify(d.row).slice(0, 80)}</div>` : ''}
+    `
   };
-  const extraMap = {
-    success: d => `<span class="amount">+¥${Number(d.totalAmount || 0).toFixed(2)}</span>`,
-    skipped: d => `<span>${d.reason || '已存在相同配置'}</span>`,
-    rejected: d => `<span>已有 ¥${Number(d.existingAmount || 0).toFixed(2)}</span>`,
-    failed: d => `<span style="color:#ff4d4f;">${d.error || '格式错误'}</span>`
-  };
-  const showItems = items.slice(0, 50);
-  const more = items.length > 50 ? items.length - 50 : 0;
+
+  const showItems = items.slice(0, 100);
+  const more = items.length > 100 ? items.length - 100 : 0;
+
   contentDiv.innerHTML = `
+    <div style="padding:8px 12px;background:#fafafa;border-bottom:1px solid #e8e8e8;font-size:12px;color:#595959;">
+      批次 <strong>${batch.batchNo}</strong> · 共 ${items.length} 条记录，显示前 ${showItems.length} 条
+    </div>
     <div class="detail-list">
-      ${showItems.map(d => `
-        <div class="detail-item ${clsMap[accState.currentDetailTab]}">
-          <span class="detail-line">第${d.line || '-'}行</span>
-          <span class="detail-key">${d.departmentName || d.departmentId || ''} · ${d.category || ''} · ${d.month || ''}</span>
-          <span class="detail-extra">${extraMap[accState.currentDetailTab](d)}</span>
+      ${showItems.map((d, idx) => `
+        <div class="detail-item ${meta.cls}-item" title="第 ${d.line || '-'} 行">
+          <span class="detail-line" style="width:70px;flex-shrink:0;">
+            #${d.line || (idx + 1)}
+          </span>
+          <span class="detail-key" style="flex:1;min-width:0;">
+            <strong>${d.month || batch.month}</strong> · 
+            ${d.departmentName || d.departmentId || '-'} · 
+            ${d.category || '-'}
+          </span>
+          <span class="detail-extra" style="text-align:right;">
+            ${renderExtra[type](d)}
+          </span>
         </div>
       `).join('')}
     </div>
-    ${more > 0 ? `<div class="result-more">...还有 ${more} 条明细</div>` : ''}
+    ${more > 0 ? `<div class="result-more">...还有 ${more} 条明细，可通过导出对账查看完整结果</div>` : ''}
   `;
 }
 
+// ---------- 对账导出 ----------
 function accReconcileExport() {
-  const month = document.getElementById('accConfigMonth').value || '';
-  const format = document.getElementById('accReconcileFormat').value || 'csv';
+  const month = accState._filterMonth;
+  const formatSel = document.getElementById('accReconcileFormat');
+  const format = formatSel ? formatSel.value : 'csv';
   const params = new URLSearchParams();
   if (month) params.set('month', month);
   params.set('format', format);
@@ -2135,20 +2341,21 @@ function accReconcileExport() {
   const userId = getUserId();
   fetch(url, { headers: { 'X-User-Id': userId } })
     .then(res => {
-      if (!res.ok) throw new Error('导出失败');
+      if (!res.ok) return res.json().then(err => { throw new Error(err.error || '导出失败'); });
       return res.blob();
     })
     .then(blob => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `reconcile_${month || 'all'}_${Date.now()}.${format}`;
+      a.download = `budget_reconcile_${month || 'all'}_${Date.now()}.${format}`;
       a.click();
       URL.revokeObjectURL(a.href);
-      toast('对账导出成功', 'success');
+      toast(`对账导出成功（${format.toUpperCase()}格式）`, 'success');
     })
     .catch(e => toast(e.message, 'error'));
 }
 
+// ---------- 运行完整验收 ----------
 async function accRunAcceptance() {
   if (!confirm('确定要运行完整的预算验收链路吗？这将重置数据并运行全部 12 个场景。')) return;
   try {
@@ -2160,30 +2367,42 @@ async function accRunAcceptance() {
       </div>
     `, null, null, true);
     const data = await API.get('/api/acceptance/run');
-    const passed = data.results ? data.results.filter(r => r.passed).length : 0;
-    const total = data.results ? data.results.length : 0;
     closeModal();
-    if (data.reportUrl) {
-      openModal('验收完成', `
-        <div style="padding:16px;">
-          <div style="font-size:16px;margin-bottom:12px;text-align:center;">
-            ${passed === total ? '🎉 全部场景通过！' : `⚠️ ${passed}/${total} 场景通过`}
-          </div>
-          <div style="max-height:300px;overflow-y:auto;">
-            ${(data.results || []).map(r => `
-              <div style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;justify-content:space-between;">
-                <span>${r.id} ${r.name}</span>
-                <span style="color:${r.passed ? '#52c41a' : '#ff4d4f'};font-weight:600;">${r.passed ? '✅ 通过' : '❌ 失败'}</span>
+
+    const scenarios = data.scenarios || [];
+    const passed = scenarios.filter(s => s.status === 'passed').length;
+    const total = scenarios.length;
+
+    openModal('验收完成', `
+      <div style="padding:16px;">
+        <div style="font-size:16px;margin-bottom:12px;text-align:center;">
+          ${passed === total && total > 0 ? '🎉 全部场景通过！' : `⚠️ ${passed}/${total} 场景通过`}
+        </div>
+        <div style="max-height:320px;overflow-y:auto;">
+          ${scenarios.map(s => `
+            <div style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span><strong>${s.id}</strong> ${s.name}</span>
+                <span style="color:${s.status === 'passed' ? '#52c41a' : '#ff4d4f'};font-weight:600;">
+                  ${s.status === 'passed' ? '✅ 通过' : '❌ 失败'}
+                </span>
               </div>
-            `).join('')}
+              ${s.error ? `<div style="margin-top:4px;padding:4px 8px;background:#fff1f0;color:#a8071a;border-radius:4px;font-size:11px;line-height:1.5;">错误: ${s.error.message}</div>` : ''}
+              <div style="margin-top:2px;color:#8c8c8c;font-size:11px;">耗时 ${s.duration}ms</div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="color:#666;font-size:12px;">
+            通过 ${passed} · 失败 ${scenarios.filter(s => s.status === 'failed').length} · 跳过 ${scenarios.filter(s => s.status === 'skipped').length}
           </div>
-          <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
-            <div style="color:#666;font-size:12px;">耗时 ${(data.durationMs / 1000).toFixed(2)}s</div>
-            <button class="btn btn-primary" onclick="window.open('${data.reportUrl}','_blank');closeModal();">📄 查看详细报告</button>
+          <div>
+            <button class="btn btn-secondary" style="margin-right:8px;" onclick="closeModal();">关闭</button>
+            <button class="btn btn-primary" onclick="window.open('/api/acceptance/report','_blank');closeModal();">📄 查看详细报告</button>
           </div>
         </div>
-      `);
-    }
+      </div>
+    `);
     accLoadAll();
   } catch (e) {
     closeModal();
@@ -2195,8 +2414,10 @@ function accViewReport() {
   window.open('/api/acceptance/report', '_blank');
 }
 
+// ---------- 一致性检查 ----------
 async function accCheckConsistency() {
-  const id = document.getElementById('accConsistencyId').value.trim();
+  const inputEl = document.getElementById('accConsistencyId');
+  const id = inputEl ? inputEl.value.trim() : '';
   if (!id) {
     toast('请输入报销单ID', 'warning');
     return;

@@ -427,10 +427,11 @@ app.post('/api/budgets/auto-setup', requireAuth, (req, res) => {
 
 app.get('/api/budgets/import/batches', requireAuth, (req, res) => {
   try {
-    const { month, operatorId } = req.query;
+    const { month, operatorId, includeDetails } = req.query;
     const filter = {};
     if (month) filter.month = month;
     if (operatorId) filter.operatorId = operatorId;
+    if (includeDetails !== undefined) filter.includeDetails = includeDetails;
     if (req.user.role === 'applicant') {
       filter.operatorId = req.user.id;
     }

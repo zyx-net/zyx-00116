@@ -1013,29 +1013,59 @@ function listImportBatches(filter = {}) {
   if (filter.month) list = list.filter(b => b.month === filter.month);
   if (filter.operatorId) list = list.filter(b => b.operatorId === filter.operatorId);
   list.sort((a, b) => new Date(b.importedAt) - new Date(a.importedAt));
-  return list.map(b => ({
-    id: b.id,
+  const includeDetails = filter.includeDetails === true || filter.includeDetails === 'true';
+  return list.map(b => {
+    const base = {
+      id: b.id,
+      batchNo: b.batchNo,
+      fileName: b.fileName,
+      totalRows: b.totalRows,
+      successCount: b.successCount,
+      skippedCount: b.skippedCount,
+      rejectedCount: b.rejectedCount,
+      failedCount: b.failedCount,
+      totalAmount: b.totalAmount,
+      operatorId: b.operatorId,
+      operatorName: b.operatorName,
+      month: b.month,
+      remark: b.remark,
+      importedAt: b.importedAt
+    };
+    if (includeDetails) {
+      base.details = normalizeBatchDetailsForView(b);
+    }
+    return base;
+  });
+}
+
+function normalizeBatchDetailsForView(b) {
+  const d = b.details || {};
+  const decorate = (arr, type) => (arr || []).map(item => ({
+    ...item,
+    type,
+    batchId: b.id,
     batchNo: b.batchNo,
-    fileName: b.fileName,
-    totalRows: b.totalRows,
-    successCount: b.successCount,
-    skippedCount: b.skippedCount,
-    rejectedCount: b.rejectedCount,
-    failedCount: b.failedCount,
-    totalAmount: b.totalAmount,
-    operatorId: b.operatorId,
-    operatorName: b.operatorName,
-    month: b.month,
-    remark: b.remark,
-    importedAt: b.importedAt
+    month: item.month || b.month,
+    departmentName: item.departmentName ||
+      (item.departmentId ? getDepartmentName(item.departmentId) : ''),
+    departmentId: item.departmentId || ''
   }));
+  return {
+    success: decorate(d.success || [], 'success'),
+    skipped: decorate(d.skipped || [], 'skipped'),
+    rejected: decorate(d.rejected || [], 'rejected'),
+    failed: decorate(d.failed || [], 'failed')
+  };
 }
 
 function getImportBatch(id) {
   const data = loadData();
   const b = data.importBatches.find(x => x.id === id);
   if (!b) return null;
-  return b;
+  return {
+    ...b,
+    details: normalizeBatchDetailsForView(b)
+  };
 }
 
 function exportReconcile(filter = {}) {
