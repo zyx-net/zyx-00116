@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "node server.js",
     "seed": "node seed.js",
-    "verify": "node regression.js && node regression-ids.js && node regression-remind-count.js && node regression-supplement-panel.js && node regression-submit-confirm-flow.js && node regression-supplement-archive.js",
+    "verify": "node regression.js && node regression-ids.js && node regression-remind-count.js && node regression-supplement-panel.js && node regression-submit-confirm-flow.js && node regression-supplement-archive.js && node regression-budget.js && node budget-acceptance.js",
+    "budget-acceptance": "node budget-acceptance.js",
+    "budget-regression": "node regression-budget.js",
     "test": "node test.js"
   },
   "dependencies": {

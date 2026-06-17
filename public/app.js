@@ -1653,17 +1653,23 @@ function showEditBudgetModal(b, version) {
 function showBudgetImportModal() {
   openModal('CSV导入预算', `
     <p style="margin-bottom:12px;color:#666">
-      请上传 CSV 文件，格式：月份,部门ID,部门名称,科目,金额
+      请上传 CSV 文件，格式：月份,部门ID,科目,总额度
     </p>
     <div class="form-group">
       <label>CSV 内容</label>
-      <textarea id="import-csv-content" rows="10" placeholder="月份,部门ID,部门名称,科目,金额
-2024-01,dept1,研发部,差旅费,50000
-2024-01,dept1,研发部,办公费,10000"></textarea>
+      <textarea id="import-csv-content" rows="8" placeholder="month,departmentId,category,totalAmount
+2024-01,dept1,差旅费,50000
+2024-01,dept1,办公费,10000"></textarea>
     </div>
-    <p style="color:#999;font-size:12px">
-      提示：第一行为标题行，将被跳过。相同月份+部门+科目的预算会被更新。
-    </p>
+    <div class="import-tips">
+      <div class="tip-title">📋 导入规则说明</div>
+      <ul class="tip-list">
+        <li><span class="tip-success">●</span> <strong>成功导入</strong>：新的月份+部门+科目组合，会创建新预算</li>
+        <li><span class="tip-skipped">●</span> <strong>跳过重复</strong>：已存在的预算配置会被跳过，不会覆盖</li>
+        <li><span class="tip-failed">●</span> <strong>导入失败</strong>：格式错误或数据不合法的行会被拒绝</li>
+        <li><span class="tip-info">💡</span> 导入后可使用"导出对账"功能验证数据完整性</li>
+      </ul>
+    </div>
   `, () => {
     const csvContent = document.getElementById('import-csv-content').value.trim();
     if (!csvContent) {
@@ -1672,16 +1678,104 @@ function showBudgetImportModal() {
     }
     API.post('/api/budgets/import', { csvContent })
       .then(result => {
-        toast(`导入完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`,
-          result.failedCount > 0 ? 'info' : 'success');
-        closeModal();
-        refreshAll();
+        showImportResultModal(result);
       })
       .catch(e => {
         toast(e.message, 'error');
       });
     return false;
   }, '开始导入', 'btn-success');
+}
+
+function showImportResultModal(result) {
+  const successCount = result.success ? result.success.length : 0;
+  const skippedCount = result.skipped ? result.skipped.length : 0;
+  const failedCount = result.failed ? result.failed.length : 0;
+  const totalCount = successCount + skippedCount + failedCount;
+
+  let successHTML = '';
+  if (successCount > 0) {
+    successHTML = `
+      <div class="result-section success">
+        <div class="result-section-title">✅ 成功导入 (${successCount} 条)</div>
+        <div class="result-list">
+          ${result.success.slice(0, 10).map(s => `
+            <div class="result-item">
+              <span class="result-line">第${s.line}行</span>
+              <span class="result-key">${s.key}</span>
+              <span class="result-amount">¥${Number(s.totalAmount).toFixed(2)}</span>
+            </div>
+          `).join('')}
+          ${successCount > 10 ? `<div class="result-more">...还有 ${successCount - 10} 条</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  let skippedHTML = '';
+  if (skippedCount > 0) {
+    skippedHTML = `
+      <div class="result-section skipped">
+        <div class="result-section-title">⏭️ 跳过重复 (${skippedCount} 条)</div>
+        <div class="result-list">
+          ${result.skipped.slice(0, 5).map(s => `
+            <div class="result-item">
+              <span class="result-line">第${s.line}行</span>
+              <span class="result-key">${s.key}</span>
+              <span class="result-reason">${s.reason}</span>
+            </div>
+          `).join('')}
+          ${skippedCount > 5 ? `<div class="result-more">...还有 ${skippedCount - 5} 条</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  let failedHTML = '';
+  if (failedCount > 0) {
+    failedHTML = `
+      <div class="result-section failed">
+        <div class="result-section-title">❌ 导入失败 (${failedCount} 条)</div>
+        <div class="result-list">
+          ${result.failed.slice(0, 5).map(f => `
+            <div class="result-item">
+              <span class="result-line">第${f.line}行</span>
+              <span class="result-reason">${f.error}</span>
+            </div>
+          `).join('')}
+          ${failedCount > 5 ? `<div class="result-more">...还有 ${failedCount - 5} 条</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  openModal('导入结果', `
+    <div class="import-result-summary">
+      <div class="summary-stat total">
+        <div class="stat-value">${totalCount}</div>
+        <div class="stat-label">总计处理</div>
+      </div>
+      <div class="summary-stat success">
+        <div class="stat-value">${successCount}</div>
+        <div class="stat-label">成功导入</div>
+      </div>
+      <div class="summary-stat skipped">
+        <div class="stat-value">${skippedCount}</div>
+        <div class="stat-label">跳过重复</div>
+      </div>
+      <div class="summary-stat failed">
+        <div class="stat-value">${failedCount}</div>
+        <div class="stat-label">导入失败</div>
+      </div>
+    </div>
+    ${successHTML}
+    ${skippedHTML}
+    ${failedHTML}
+    <div class="result-actions">
+      <button class="btn btn-primary btn-sm" onclick="exportBudgets();closeModal();">📤 导出对账</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal();refreshBudgetList();">确定</button>
+    </div>
+  `, null, null, null);
 }
 
 function exportBudgets() {
